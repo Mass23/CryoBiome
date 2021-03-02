@@ -1,5 +1,5 @@
 # EUCI_microbiome
-- All environments, scripts and jupyter notebooks required to replicate the Ecosystems Under Cryospheric Influence manuscript are here within
+- All environments, scripts and jupyter notebooks required to replicate the Ecosystems Under Cryospheric Influence analyses are here within
 
 ## Overview
 - Below are the individual folders, scripts and `Snakemake` files required to accomplish all the analyses in the manuscript
