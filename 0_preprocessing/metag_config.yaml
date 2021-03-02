@@ -1,0 +1,11 @@
+# Define sample names
+# samples: ["GL_56_Down", "GL_56_Up", "GL_58_Down", "GL_58_Up", "GL_5_Down", "GL_5_Up", "GL_6_Down", "GL_6_UpB", "GL_6_Up"]
+
+# Directory where fastq files are
+data_dir: "/scratch/users/sbusi/metaG"
+
+# Directory to save the output to
+results_dir: "/work/projects/nomis/metaG/results"
+
+# Number of cpus or threads to use
+threads: 12

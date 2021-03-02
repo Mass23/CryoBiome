@@ -1,0 +1,114 @@
+steps: "preprocessing assembly analysis binning summary taxonomy"
+preprocessing_filtering: true
+mem:
+  normal_mem_per_core_gb: 8
+  big_mem_total_gb: 240
+  big_mem_cores: 8
+  big_mem_per_core_gb: 30
+tmp_dir: tmp
+raws: 
+  Metagenomics: "/scratch/users/sbusi/metaG/IMP3/"$sample"/"$sample"_Pool1_R1.fastq.gz /scratch/users/sbusi/metaG/IMP3/"$sample"/"$sample"_Pool1_R2.fastq.gz" 
+  Metatranscriptomics: ""
+  LongReads: ""
+  LongReadTech: ""
+  Contigs: ""
+  Alignment_metagenomics: ""
+  Alignment_metatranscriptomics: ""
+sample: ""$sample""
+outputdir: "/scratch/users/sbusi/metaG/IMP3/"$sample"/run1"
+summary_steps: "stats vis"
+db_path: "/work/projects/ecosystem_biology/local_tools/IMP3/databases"
+trimmomatic:
+  adapter: "TruSeq3-PE"
+  leading: 20
+  minlen: 40
+  palindrome_clip_threshold: 30
+  simple_clip_threshold: 10
+  trailing: 20
+  seed_mismatch: 2
+  window_size: 1
+  window_quality: 3
+  strictness: 0.5
+  target_length: 40
+nextseq: false
+filtering:
+  filter: PhiX
+#  filter: hg38
+#  filter: ""
+sortmerna:
+  files:
+    - rfam-5.8s-database-id98
+    - silva-arc-16s-id95
+    - silva-bac-16s-id90
+    - silva-euk-18s-id95
+    - rfam-5s-database-id98
+    - silva-arc-23s-id98
+    - silva-bac-23s-id98
+    - silva-euk-28s-id98
+assembly: 
+  hybrid: true
+  assembler: megahit
+  mink: 25
+  maxk: 99
+  step: 4
+  cap3:
+    identity: 98
+    overlap: 100
+hmm_DBs: "KEGG essential Pfam_A Resfams Cas dbCAN"
+hmm_settings: 
+  KEGG:
+    cutoff: ""
+    trim: "--trimall"
+  essential:
+    cutoff: "--cut_tc"
+    trim: ""
+  metacyc:
+    cutoff: ""
+    trim: "--trimall"
+  Cas:
+    cutoff: ""
+    trim: ""
+  Pfam_A:
+    cutoff: "--cut_tc"
+    trim: ""
+  SwissProt:
+    cutoff: ""
+    trim: "--trimall"
+  TIGRPFAM:
+    cutoff: ""
+    trim: ""
+  dbCAN:
+    cutoff: ""
+    trim: ""
+  Resfams:
+    cutoff: ""
+    trim: ""
+COGS: "COG0012 COG0018 COG0215 COG0525 COG0541 COG0016 COG0172 COG0495 COG0533 COG0552"
+prokka: 
+  prefix: prokka
+  databases: 
+    - "cm/Bacteria.i1i"
+    - "genus/Staphylococcus.phr"
+    - "hmm/CLUSTERS.hmm.h3f"
+    - "kingdom/Archaea/sprot.phr"
+featureCountsStranding:
+  mt: 2
+  mg: 0
+binning:
+  binners: "MaxBin binny"
+  MaxBin:
+    cutoff: 1000
+  MetaBAT:
+    cutoff: 1500
+  binny:
+    pk: 10
+    nn: 4
+    cutoff: 1000
+  vizbin:
+    dimension: 50
+    kmer: 5
+    size: 4
+    theta: 0.5
+    perp: 30
+    cutoff: 1000
+krakendb: "minikraken2"

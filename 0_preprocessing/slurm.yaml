@@ -1,0 +1,9 @@
+__default__:
+  call: "sbatch"
+  nodes: "-N 1"
+#  mem_per_cpu: "--mem-per-cpu 100G"
+  partition: "-p bigmem"
+  quality: "-q long"
+  runtime: "-t 5-00:00:00"
+  threads: "-n "
+  job-name: "inception.{rule}"
