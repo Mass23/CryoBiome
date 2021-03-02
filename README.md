@@ -29,22 +29,22 @@
   - 0_preprocessing/metag_config.yaml: config file for preprocessing samples using IMP
   - 0_preprocessing/slurm.yaml: SLURM configuration file for running the analyses on a HPC-environment
   - 0_preprocessing/snakemake_parsable_launcher.sh: SBATCH launcher for running initial IMP preprocessing
-  - envs
-  - scripts
+  - envs: conda environments required for each snakefile
+  - scripts: utility and accessory scripts for downstream analyses
   - 6_MTG_taxonomy.R
   - 7_MTG_functional.R
   - 8_Functional_taxonomy.R
   - 9_Genes_clustering.ipynb
   - 9_Unassigned_genes.ipynb
-  - cluster_list
-  - config.yaml
+  - cluster_list: list of all clusters of KEGG+Unassigned genes based on "mmseqs2" analyses
+  - config.yaml: config file for running the initial gene fasta extraction and "mmseqs2" clustering
   - coverage_Snakefile: to estimate coverage for each contig/gene in the assemblies
-  - coverage_config.yaml
+  - coverage_config.yaml: config file required to run "coverage_Snakefile"
   - extraction_Snakefile: to extract fasta sequences based on cluster IDs, get cluster stats, MAFFT alignment, consensus sequence selection and tRNA analyses.
-  - extraction_config.yaml
+  - extraction_config.yaml: config file required to run "extraction_Snakefile"
   - get_clusterID.sh: bash script to collect all contig IDs belonging to individual cluster IDs
-  - kegg_plus_unassigned_list
-  - list
-  - sample_list
-  - unassigned_clusters_EUCI.tsv
+  - kegg_plus_unassigned_list: list of all unassigned genes, and KEGG IDs
+  - list: test list for testing Snakefiles
+  - sample_list: list of samples used for metaG analyses
+  - unassigned_clusters_EUCI.tsv: Tab-delimited file indicating which contig IDs belong to which respective clusters.
 ```
