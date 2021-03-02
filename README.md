@@ -3,6 +3,6 @@
 
 ## Overview
 ### Folders
-- 0_preprocessing: All scripts required for preprocessing both amplicon and metagenomic (metag) data
-- envs: conda environments required for all analyses
-- scripts: custom and exisiting scripts for individual steps and certain preprocessing steps
+- `0_preprocessing`: All scripts required for preprocessing both amplicon and metagenomic (metag) data
+- `envs`: conda environments required for all analyses
+- `scripts`: custom and exisiting scripts for individual steps and certain preprocessing steps
