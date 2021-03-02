@@ -2,6 +2,7 @@
 - All environments, scripts and jupyter notebooks required to replicate the Ecosystems Under Cryospheric Influence manuscript are here within
 
 ## Overview
+- Below are the individual folders, scripts and `Snakemake` files required to accomplish all the analyses in the manuscript
 ### Folders
 - `0_preprocessing`: All scripts required for preprocessing both amplicon and metagenomic (metag) data
 - `envs`: conda environments required for all analyses
