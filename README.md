@@ -5,8 +5,8 @@
 - Below are the individual folders, scripts and `Snakemake` files required to accomplish all the analyses in the manuscript
 ### Folders
 - `0_preprocessing`: All scripts required for preprocessing both amplicon and metagenomic (metag) data
-- `envs`: conda environments required for all analyses
-- `scripts`: custom and exisiting scripts for individual steps and certain preprocessing steps
+- `envs`: conda environments required for all analyses using `Snakemake`
+- `scripts`: custom and exisiting scripts for individual steps and certain preprocessing steps including utility and accessory scripts for downstream analyses
 
 ### Steps
 #### Amplicon analyses
@@ -29,8 +29,6 @@
   - 0_preprocessing/metag_config.yaml: config file for preprocessing samples using IMP
   - 0_preprocessing/slurm.yaml: SLURM configuration file for running the analyses on a HPC-environment
   - 0_preprocessing/snakemake_parsable_launcher.sh: SBATCH launcher for running initial IMP preprocessing
-  - envs: conda environments required for each snakefile
-  - scripts: utility and accessory scripts for downstream analyses
   - 6_MTG_taxonomy.R
   - 7_MTG_functional.R
   - 8_Functional_taxonomy.R
