@@ -1,0 +1,5 @@
+# Path to data folder
+data_dir: "/mnt/internal/sbusi/euci"
+
+# Path to results folder
+results_dir: "/mnt/internal/sbusi/euci/genbank/bacteria"
