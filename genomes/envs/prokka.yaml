@@ -5,4 +5,4 @@ channels:
   - biocore
 dependencies:
   - prokka=1.14.6
-  - blast-legacy=2.2.26
+  - blast-plus=2.2.31
