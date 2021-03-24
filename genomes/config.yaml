@@ -3,3 +3,19 @@ data_dir: "/mnt/internal/sbusi/euci"
 
 # Path to results folder
 results_dir: "/mnt/internal/sbusi/euci/genbank/bacteria"
+
+# Path to Conda environments:
+env_dir: "/mnt/internal/sbusi/euci/envs"
+
+# Path to auxilliary scripts
+scripts_dir: "/mnt/internal/sbusi/euci/scripts"
+
+# ESB-storage-01
+esb-storage-01:
+  path: "/mnt/esb-storage-01/NOMIS/refseq/complete_prokaryotes"
+
+################################
+# Prokka
+prokka:
+  threads: 4
+

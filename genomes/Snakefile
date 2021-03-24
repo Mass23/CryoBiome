@@ -11,25 +11,97 @@ import glob
 configfile:"config.yaml"
 DATA_DIR=config['data_dir']
 RESULTS_DIR=config['results_dir']
+ENV_DIR=config['env_dir']
+SRC_DIR=config['scripts_dir']
 SAMPLES=[line.strip() for line in open("prokaryote_complete_accessions.txt", 'r')]    # if using a sample list instead of putting them in a config file
+ASSEMBLY=[line.strip() for line in open("assembly_list.txt", 'r')]
 
 ###########
 rule all:
     input:
-        expand(os.path.join(RESULTS_DIR, "{sample}"), sample=SAMPLES)
+        expand(os.path.join(RESULTS_DIR, "{sample}"), sample=SAMPLES),
+        expand(os.path.join(RESULTS_DIR, "gRodon/{sample}_{ass}_growth_prediction.txt"), sample=SAMPLES, ass=ASSEMBLY)
 
 ############################
 # Download Genbank genomes #
 ############################
-rule genome-download:
+rule genome_download:
     output:
         directory(os.path.join(RESULTS_DIR, "{sample}"))
     log:
         os.path.join("logs/download.{sample}.log")
     conda:
-        os.path.join("envs/ncbi-genome-download.yaml")
+        os.path.join(ENV_DIR, "ncbi-genome-download.yaml")
     message:
         "Downloading FASTA, GFF and Protein-FASTA for {wildcards.sample}"
     shell:
-        "(date && ncbi-genome-download -A {wildcards.sample} all -s genbank --formats fasta,gff,protein-fasta --no-cache --verbose && date) &> {log}"
+        "(date && ncbi-genome-download -A {wildcards.sample} bacteria -s genbank --formats fasta,gff,protein-fasta --no-cache --verbose && date) &> {log}"
 
+#################
+# Initial Setup #
+#################
+rule install_gRodon:
+    output:
+        done=os.path.join(RESULTS_DIR, "gRodon/gRodon.installed")
+    log:
+        out=os.path.join("logs/setup.gRodon.log")
+    conda:
+        os.path.join(ENV_DIR, "gRodon.yaml")
+    message:
+        "Setup: install R-package gRodon"
+    script:
+        os.path.join(SRC_DIR, "install_gRodon.R")
+
+##########
+# Prokka #
+##########
+rule prokka:
+    input:
+        os.path.join(RESULTS_DIR, "{sample}/{ass}_genomic.fna.gz")
+    output:
+        GFF=os.path.join(RESULTS_DIR, "prokka/{sample}/{ass}.gff"),
+        FFN=os.path.join(RESULTS_DIR, "prokka/{sample}/{ass}.ffn")
+    log:
+        "logs/prokka.{sample}.{ass}.log"
+    threads:
+        config['prokka']['threads']
+    conda:
+        os.path.join(ENV_DIR, "prokka.yaml")
+    message:
+        "Running Prokka on {wildcards.ass}"
+    shell:
+        "(date && prokka <$(zcat {input}) --outdir $(dirname {output.GFF}) --prefix {wildcards.ass} --cpus {threads} --force && date) &> {log}"
+
+#################
+# Preprocessing #
+#################
+rule preprocess:
+    input:
+        os.path.join(RESULTS_DIR, "prokka/{sample}/{ass}.gff")
+    output:
+        os.path.join(RESULTS_DIR, "prokka/{sample}/{ass}_CDS_names.txt")
+    log:
+        "logs/preprocess.{sample}.{ass}.log"
+    message:
+        "Preprocessing GFFs from {wildcards.sample}"
+    shell:
+        """(date && sed -n '/##FASTA/q;p' {input} | awk '$3=="CDS"' | awk '{{print $9}}' | awk 'gsub(";.*","")' | awk 'gsub("ID=","")' > {output} && date) &> {log}"""
+
+##################
+# Running gRodon #
+##################
+rule gRodon:
+    input:
+        FFN=os.path.join(RESULTS_DIR, "prokka/{sample}/{ass}.ffn"),
+        CDS=rules.preprocess.output,
+        installed=os.path.join(RESULTS_DIR, "gRodon/gRodon.installed")
+    output:
+        PRED=os.path.join(RESULTS_DIR, "gRodon/{sample}_{ass}_growth_prediction.txt")
+    log:
+        "logs/gRodon.{sample}.{ass}.log"
+    conda:
+        os.path.join(ENV_DIR, "gRodon.yaml")
+    message:
+        "Growth prediction using gRodon for {wildcards.ass}"
+    script:
+        os.path.join(SRC_DIR, "gRodon.R")
