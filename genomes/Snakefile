@@ -20,7 +20,9 @@ ASSEMBLY=[line.strip() for line in open("assembly_list.txt", 'r')]
 rule all:
     input:
         expand(os.path.join(RESULTS_DIR, "{sample}"), sample=SAMPLES),
-        expand(os.path.join(RESULTS_DIR, "gRodon/{sample}_{ass}_growth_prediction.txt"), sample=SAMPLES, ass=ASSEMBLY)
+        os.path.join(RESULTS_DIR, "gRodon/gRodon.installed"),
+        expand(os.path.join(RESULTS_DIR, "prokka/{sample}/{ass}.{type}"), sample=SAMPLES, ass=ASSEMBLY, type=["gff", "ffn"])
+#        expand(os.path.join(RESULTS_DIR, "gRodon/{sample}_{ass}_growth_prediction.txt"), sample=SAMPLES, ass=ASSEMBLY)
 
 ############################
 # Download Genbank genomes #
@@ -59,10 +61,14 @@ rule prokka:
     input:
         os.path.join(RESULTS_DIR, "{sample}/{ass}_genomic.fna.gz")
     output:
+        FA=temp(os.path.join(RESULTS_DIR, "{sample}/{ass}.fna")),
         GFF=os.path.join(RESULTS_DIR, "prokka/{sample}/{ass}.gff"),
         FFN=os.path.join(RESULTS_DIR, "prokka/{sample}/{ass}.ffn")
     log:
         "logs/prokka.{sample}.{ass}.log"
+    wildcard_constraints:
+        sample=SAMPLES,
+        ass=ASSEMBLY
     threads:
         config['prokka']['threads']
     conda:
@@ -70,7 +76,8 @@ rule prokka:
     message:
         "Running Prokka on {wildcards.ass}"
     shell:
-        "(date && prokka <$(zcat {input}) --outdir $(dirname {output.GFF}) --prefix {wildcards.ass} --cpus {threads} --force && date) &> {log}"
+        "(date && zcat {input} > {output.FA} && "
+        "prokka {output.FA} --outdir $(dirname {output.GFF}) --prefix {wildcards.ass} --cpus {threads} --force && date) &> {log}"
 
 #################
 # Preprocessing #
