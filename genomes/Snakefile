@@ -21,7 +21,7 @@ rule all:
 ############################
 # Download Genbank genomes #
 ############################
-rule coverage:
+rule genome-download:
     output:
         directory(os.path.join(RESULTS_DIR, "{sample}"))
     log:
