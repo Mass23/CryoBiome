@@ -13,18 +13,19 @@ DATA_DIR=config['data_dir']
 RESULTS_DIR=config['results_dir']
 ENV_DIR=config['env_dir']
 SRC_DIR=config['scripts_dir']
-# SAMPLES=[line.strip() for line in open("prokaryote_complete_accessions.txt", 'r')]    # if using a sample list instead of putting them in a config file
-# ASSEMBLY=[line.strip() for line in open("assembly_list.txt", 'r')]
-SAMPLES=SAMPLES=[line.strip() for line in open("sample_list", 'r')]
-ASSEMBLY=[line.strip() for line in open("ass_list", 'r')]
+SAMPLES=[line.strip() for line in open("prokaryote_complete_accessions.txt", 'r')]    # if using a sample list instead of putting them in a config file
+ASSEMBLY=[line.strip() for line in open("assembly_list.txt", 'r')]
+# SAMPLES=SAMPLES=[line.strip() for line in open("sample_list", 'r')]	# used for TEST purposes
+# ASSEMBLY=[line.strip() for line in open("ass_list", 'r')]		# used for TEST purposes
 
 ###########
 rule all:
     input:
 #        expand(os.path.join(DATA_DIR, "{sample}"), sample=SAMPLES),
         os.path.join(RESULTS_DIR, "gRodon/gRodon.installed"),
-        expand(os.path.join(RESULTS_DIR, "prokka/{ass}.{type}"), sample=SAMPLES, ass=ASSEMBLY, type=["gff", "ffn"])
-#        expand(os.path.join(RESULTS_DIR, "gRodon/{sample}_{ass}_growth_prediction.txt"), sample=SAMPLES, ass=ASSEMBLY)
+        expand(os.path.join(RESULTS_DIR, "prokka/{ass}.{type}"), ass=ASSEMBLY, type=["gff", "ffn"]),
+#        expand(os.path.join(RESULTS_DIR, "prokka/{ass}_CDS_names.txt"), ass=ASSEMBLY)
+        expand(os.path.join(RESULTS_DIR, "gRodon/{ass}_growth_prediction.txt"), ass=ASSEMBLY)
 
 ############################
 # Download Genbank genomes #
@@ -87,7 +88,8 @@ rule prokka:
 #################
 rule preprocess:
     input:
-        os.path.join(RESULTS_DIR, "prokka/{ass}.gff")
+#        os.path.join(RESULTS_DIR, "prokka/{ass}.gff")
+        rules.prokka.output.GFF
     output:
         os.path.join(RESULTS_DIR, "prokka/{ass}_CDS_names.txt")
     log:
@@ -102,7 +104,8 @@ rule preprocess:
 ##################
 rule gRodon:
     input:
-        FFN=os.path.join(RESULTS_DIR, "prokka/{ass}.ffn"),
+#        FFN=os.path.join(RESULTS_DIR, "prokka/{ass}.ffn"),
+        FFN=rules.prokka.output.FFN,
         CDS=rules.preprocess.output,
         installed=os.path.join(RESULTS_DIR, "gRodon/gRodon.installed")
     output:
