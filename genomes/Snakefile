@@ -14,9 +14,9 @@ RESULTS_DIR=config['results_dir']
 ENV_DIR=config['env_dir']
 SRC_DIR=config['scripts_dir']
 SAMPLES=[line.strip() for line in open("prokaryote_complete_accessions.txt", 'r')]    # if using a sample list instead of putting them in a config file
-# ASSEMBLY=[line.strip() for line in open("assembly_list.txt", 'r')]
+ASSEMBLY=[line.strip() for line in open("assembly_list.txt", 'r')]
 # SAMPLES=SAMPLES=[line.strip() for line in open("sample_list", 'r')]	# used for TEST purposes
-ASSEMBLY=[line.strip() for line in open("ass_list", 'r')]		# used for TEST purposes
+# ASSEMBLY=[line.strip() for line in open("ass_list", 'r')]		# used for TEST purposes
 
 ###########
 rule all:
@@ -93,8 +93,7 @@ rule prodigal:
         os.path.join(DATA_DIR, "{ass}_genomic.fna.gz")
     output:
         FA=os.path.join(RESULTS_DIR, "data/{ass}.fna"),
-        GFF=os.path.join(RESULTS_DIR, "prodigal/{ass}.gff"),
-        FFN=os.path.join(RESULTS_DIR, "prodigal/{ass}.ffn")
+        GFF=os.path.join(RESULTS_DIR, "prodigal/{ass}.gff")
     log:
         "logs/annotation.prodigal.{ass}.log"
     threads: 
@@ -104,9 +103,25 @@ rule prodigal:
     message:
         "Annotation: Prodigal: {wildcards.ass}"
     shell:
-        "(date && prodigal -a {output} -i {input} -f gff && "
-        "any2fasta {output.GFF} > {output.FFN} && date) &> {log}"
+        "(date && zcat {input} > {output.FA} && "
+        "export PERL5LIB={config[prodigal][path]} && prodigal -i {output.FA} -o {output.GFF} -f gff && date) &> {log}"
 
+rule convert:
+    input:
+        FA=rules.prodigal.output.FA,
+        GFF=rules.prodigal.output.GFF
+    output:
+        BED=os.path.join(RESULTS_DIR, "prodigal/{ass}.bed"),
+        FFN=os.path.join(RESULTS_DIR, "prodigal/{ass}.ffn")
+    log:
+        "logs/convert.{ass}.log"
+    conda:
+        os.path.join(ENV_DIR, "bedtools.yaml")
+    message:
+        "Converting GFF to FFN for {wildcards.ass}"
+    shell:
+        """(date && awk '($3=="CDS" || $3=="gene" || $3=="tRNA" || $3=="tmRNA" || $3=="ncRNA" || $3=="rRNA") {{OFS="\t"; print $1,$4-1,$5}}' {input.GFF} > {output.BED} &&"""
+        """bedtools getfasta -fi {input.FA} -bed {output.BED} -fo {output.FFN} && date) &> {log}"""
 
 ################
 # Preprocessing #

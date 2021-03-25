@@ -25,3 +25,4 @@ prokka:
 # Prodigal
 prodigal:
   threads: 1
+  path: "/mnt/data/sbusi/euci/.snakemake/conda/cdaed2ee/lib/5.26.2"
