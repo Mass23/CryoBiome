@@ -14,18 +14,20 @@ RESULTS_DIR=config['results_dir']
 ENV_DIR=config['env_dir']
 SRC_DIR=config['scripts_dir']
 SAMPLES=[line.strip() for line in open("prokaryote_complete_accessions.txt", 'r')]    # if using a sample list instead of putting them in a config file
-ASSEMBLY=[line.strip() for line in open("assembly_list.txt", 'r')]
+# ASSEMBLY=[line.strip() for line in open("assembly_list.txt", 'r')]
 # SAMPLES=SAMPLES=[line.strip() for line in open("sample_list", 'r')]	# used for TEST purposes
-# ASSEMBLY=[line.strip() for line in open("ass_list", 'r')]		# used for TEST purposes
+ASSEMBLY=[line.strip() for line in open("ass_list", 'r')]		# used for TEST purposes
 
 ###########
 rule all:
     input:
 #        expand(os.path.join(DATA_DIR, "{sample}"), sample=SAMPLES),
         os.path.join(RESULTS_DIR, "gRodon/gRodon.installed"),
-        expand(os.path.join(RESULTS_DIR, "prokka/{ass}.{type}"), ass=ASSEMBLY, type=["gff", "ffn"]),
+#        expand(os.path.join(RESULTS_DIR, "prokka/{ass}.{type}"), ass=ASSEMBLY, type=["gff", "ffn"]),
 #        expand(os.path.join(RESULTS_DIR, "prokka/{ass}_CDS_names.txt"), ass=ASSEMBLY)
-        expand(os.path.join(RESULTS_DIR, "gRodon/{ass}_growth_prediction.txt"), ass=ASSEMBLY)
+        expand(os.path.join(RESULTS_DIR, "prodigal/{ass}.ffn"), ass=ASSEMBLY)
+#        expand(os.path.join(RESULTS_DIR, "gRodon/{ass}_growth_prediction.txt"), ass=ASSEMBLY),
+#        expand(os.path.join(RESULTS_DIR, "gRodon/merged_all_growth_prediction.txt"))
 
 ############################
 # Download Genbank genomes #
@@ -83,7 +85,30 @@ rule prokka:
         "export PATH={config[prokka][blast]}:$PATH && export PERL5LIB={config[prokka][path]} && "
         "prokka {output.FA} --outdir $(dirname {output.GFF}) --prefix $(basename {wildcards.ass}) --cpus {threads} --force && date) &> {log}"
 
-#################
+############
+# Prodigal #
+############
+rule prodigal:
+    input:
+        os.path.join(DATA_DIR, "{ass}_genomic.fna.gz")
+    output:
+        FA=os.path.join(RESULTS_DIR, "data/{ass}.fna"),
+        GFF=os.path.join(RESULTS_DIR, "prodigal/{ass}.gff"),
+        FFN=os.path.join(RESULTS_DIR, "prodigal/{ass}.ffn")
+    log:
+        "logs/annotation.prodigal.{ass}.log"
+    threads: 
+        config['prodigal']['threads']
+    conda:
+        os.path.join(ENV_DIR, "prodigal.yaml")
+    message:
+        "Annotation: Prodigal: {wildcards.ass}"
+    shell:
+        "(date && prodigal -a {output} -i {input} -f gff && "
+        "any2fasta {output.GFF} > {output.FFN} && date) &> {log}"
+
+
+################
 # Preprocessing #
 #################
 rule preprocess:
@@ -118,3 +143,17 @@ rule gRodon:
         "Growth prediction using gRodon for {wildcards.ass}"
     script:
         os.path.join(SRC_DIR, "gRodon.R")
+
+rule merge_gRodon:
+    input:
+        PRED=os.path.join(RESULTS_DIR, "gRodon/gRodon.installed")
+    output:
+        DF=os.path.join(RESULTS_DIR, "gRodon/merged_all_growth_prediction.txt")
+    log:
+        "logs/gRodon.merged.log"
+    conda:
+        os.path.join(ENV_DIR, "r-conda.yaml")
+    message:
+        "Merging gRodon output for all samples"
+    script:
+        os.path.join(SRC_DIR, "merge_gRodon.R") 

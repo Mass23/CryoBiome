@@ -17,6 +17,11 @@ esb-storage-01:
 ################################
 # Prokka
 prokka:
-  threads: 6
+  threads: 12
   path: "/mnt/data/sbusi/euci/.snakemake/conda/34fca334/lib/site_perl/5.26.2"
   blast: "/mnt/data/sbusi/euci/.snakemake/conda/9654cb14/bin"
+
+################################
+# Prodigal
+prodigal:
+  threads: 1
