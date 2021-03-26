@@ -26,3 +26,9 @@ prokka:
 prodigal:
   threads: 1
   path: "/mnt/data/sbusi/euci/.snakemake/conda/cdaed2ee/lib/5.26.2"
+
+# BLAST
+blast:
+  db: "/mnt/data/sbusi/euci/RPROTDB/RPDB"
+  max_hits: 1
+  threads: 2

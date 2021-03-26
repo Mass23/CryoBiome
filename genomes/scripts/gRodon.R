@@ -17,15 +17,20 @@ CDS_IDs <- readLines(snakemake@input[["CDS"]])
 gene_IDs <- gsub(" .*","",names(genes)) #Just look at first part of name before the space
 genes <- genes[gene_IDs %in% CDS_IDs]
 
-#Search for genes annotated as ribosomal proteins
-highly_expressed <- grepl("ribosomal protein",names(genes),ignore.case = T)
+# Search for genes annotated as ribosomal proteins
+# highly_expressed <- grepl("ribosomal protein",names(genes),ignore.case = T)
+highly_expressed <- read.table(snakemake@input[["BLAST"]], header=FALSE, sep="\t")
+highly_expressed <- highly_expressed$V1
+
+# getting list of highly-abundant ribosomal sequences
+expressed <- gene_IDs %in% highly_expressed
 
 # Since some MAGs are not very complete the Growth Prediction is run using "tryCatch"
 # Example usage: https://statisticsglobe.com/using-trycatch-function-to-handle-errors-and-warnings-in-r
 # Running growth prediction
 pred_growth <- tryCatch({
     print("Running growth prediction")
-    result <- predictGrowth(genes, highly_expressed, mode="partial")
+    result <- predictGrowth(genes, expressed, mode="partial")
 }, error = function(e) {
     print("Creating empty file if errors are thrown")
     result <- NULL

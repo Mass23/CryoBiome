@@ -22,11 +22,12 @@ ASSEMBLY=[line.strip() for line in open("assembly_list.txt", 'r')]
 rule all:
     input:
 #        expand(os.path.join(DATA_DIR, "{sample}"), sample=SAMPLES),
-        os.path.join(RESULTS_DIR, "gRodon/gRodon.installed"),
+#        os.path.join(RESULTS_DIR, "gRodon/gRodon.installed"),
 #        expand(os.path.join(RESULTS_DIR, "prokka/{ass}.{type}"), ass=ASSEMBLY, type=["gff", "ffn"]),
-#        expand(os.path.join(RESULTS_DIR, "prokka/{ass}_CDS_names.txt"), ass=ASSEMBLY)
-        expand(os.path.join(RESULTS_DIR, "prodigal/{ass}.ffn"), ass=ASSEMBLY)
-#        expand(os.path.join(RESULTS_DIR, "gRodon/{ass}_growth_prediction.txt"), ass=ASSEMBLY),
+#        expand(os.path.join(RESULTS_DIR, "prodigal/{ass}_CDS_names.txt"), ass=ASSEMBLY)
+        expand(os.path.join(RESULTS_DIR, "prodigal/{ass}.{type}"), ass=ASSEMBLY, type=["gff", "faa", "ffn"]),
+        expand(os.path.join(RESULTS_DIR, "blast/{ass}.out"), ass=ASSEMBLY),
+        expand(os.path.join(RESULTS_DIR, "gRodon/{ass}_growth_prediction.txt"), ass=ASSEMBLY),
 #        expand(os.path.join(RESULTS_DIR, "gRodon/merged_all_growth_prediction.txt"))
 
 ############################
@@ -62,28 +63,28 @@ rule install_gRodon:
 ##########
 # Prokka #
 ##########
-rule prokka:
-    input:
-        os.path.join(DATA_DIR, "{ass}_genomic.fna.gz")
-    output:
-        FA=os.path.join(RESULTS_DIR, "data/{ass}.fna"),
-        GFF=os.path.join(RESULTS_DIR, "prokka/{ass}.gff"),
-        FFN=os.path.join(RESULTS_DIR, "prokka/{ass}.ffn")
-    log:
-        "logs/prokka.{ass}.log"
-#    wildcard_constraints:
-#        sample=SAMPLES,
-#        ass=ASSEMBLY
-    threads:
-        config['prokka']['threads']
-    conda:
-        os.path.join(ENV_DIR, "prokka.yaml")
-    message:
-        "Running Prokka on {wildcards.ass}"
-    shell:
-        "(date && zcat {input} > {output.FA} && "
-        "export PATH={config[prokka][blast]}:$PATH && export PERL5LIB={config[prokka][path]} && "
-        "prokka {output.FA} --outdir $(dirname {output.GFF}) --prefix $(basename {wildcards.ass}) --cpus {threads} --force && date) &> {log}"
+#rule prokka:
+#    input:
+#        os.path.join(DATA_DIR, "{ass}_genomic.fna.gz")
+#    output:
+#        FA=os.path.join(RESULTS_DIR, "data/{ass}.fna"),
+#        GFF=os.path.join(RESULTS_DIR, "prokka/{ass}.gff"),
+#        FFN=os.path.join(RESULTS_DIR, "prokka/{ass}.ffn")
+#    log:
+#        "logs/prokka.{ass}.log"
+##    wildcard_constraints:
+##        sample=SAMPLES,
+##        ass=ASSEMBLY
+#    threads:
+#        config['prokka']['threads']
+#    conda:
+#        os.path.join(ENV_DIR, "prokka.yaml")
+#    message:
+#        "Running Prokka on {wildcards.ass}"
+#    shell:
+#        "(date && zcat {input} > {output.FA} && "
+#        "export PATH={config[prokka][blast]}:$PATH && export PERL5LIB={config[prokka][path]} && "
+#        "prokka {output.FA} --outdir $(dirname {output.GFF}) --prefix $(basename {wildcards.ass}) --cpus {threads} --force && date) &> {log}"
 
 ############
 # Prodigal #
@@ -93,7 +94,9 @@ rule prodigal:
         os.path.join(DATA_DIR, "{ass}_genomic.fna.gz")
     output:
         FA=os.path.join(RESULTS_DIR, "data/{ass}.fna"),
-        GFF=os.path.join(RESULTS_DIR, "prodigal/{ass}.gff")
+        GFF=os.path.join(RESULTS_DIR, "prodigal/{ass}.gff"),
+        FAA=os.path.join(RESULTS_DIR, "prodigal/{ass}.faa"),
+        FFN=os.path.join(RESULTS_DIR, "prodigal/{ass}.ffn")
     log:
         "logs/annotation.prodigal.{ass}.log"
     threads: 
@@ -104,49 +107,71 @@ rule prodigal:
         "Annotation: Prodigal: {wildcards.ass}"
     shell:
         "(date && zcat {input} > {output.FA} && "
-        "export PERL5LIB={config[prodigal][path]} && prodigal -i {output.FA} -o {output.GFF} -f gff && date) &> {log}"
+        "export PERL5LIB={config[prodigal][path]} && prodigal -i {output.FA} -a {output.FAA} -d {output.FFN} -o {output.GFF} -f gff && date) &> {log}"
 
-rule convert:
+#rule convert:
+#    input:
+#        FA=rules.prodigal.output.FA,
+#        GFF=rules.prodigal.output.GFF
+#    output:
+#        BED=os.path.join(RESULTS_DIR, "prodigal/{ass}.bed"),
+#        FFN=os.path.join(RESULTS_DIR, "prodigal/{ass}.ffn")
+#    log:
+#        "logs/convert.{ass}.log"
+#    conda:
+#        os.path.join(ENV_DIR, "bedtools.yaml")
+#    message:
+#        "Converting GFF to FFN for {wildcards.ass}"
+#    shell:
+#        """(date && awk '($3=="CDS" || $3=="gene" || $3=="tRNA" || $3=="tmRNA" || $3=="ncRNA" || $3=="rRNA") {{OFS="\t"; print $1,$4-1,$5}}' {input.GFF} > {output.BED} &&"""
+#        """bedtools getfasta -fi {input.FA} -bed {output.BED} -fo {output.FFN} && date) &> {log}"""
+
+#########
+# BLAST #
+#########
+rule blast:
     input:
-        FA=rules.prodigal.output.FA,
-        GFF=rules.prodigal.output.GFF
+        rules.prodigal.output.FAA
     output:
-        BED=os.path.join(RESULTS_DIR, "prodigal/{ass}.bed"),
-        FFN=os.path.join(RESULTS_DIR, "prodigal/{ass}.ffn")
+        os.path.join(RESULTS_DIR, "blast/{ass}.out")
+    params:
+        db=config["blast"]["db"],
+        max_hits=config["blast"]["max_hits"],
+    threads:
+        config["blast"]["threads"]
     log:
-        "logs/convert.{ass}.log"
+        "logs/blast.{ass}.log"
     conda:
-        os.path.join(ENV_DIR, "bedtools.yaml")
+        os.path.join(ENV_DIR, "blast.yaml")
     message:
-        "Converting GFF to FFN for {wildcards.ass}"
+        "Running BLAST against ribosomal protein DB for {wildcards.ass}"
     shell:
-        """(date && awk '($3=="CDS" || $3=="gene" || $3=="tRNA" || $3=="tmRNA" || $3=="ncRNA" || $3=="rRNA") {{OFS="\t"; print $1,$4-1,$5}}' {input.GFF} > {output.BED} &&"""
-        """bedtools getfasta -fi {input.FA} -bed {output.BED} -fo {output.FFN} && date) &> {log}"""
+        """(date && blastp -query {input} -db {params.db} -evalue 1e-5 -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore" -out {output} -num_threads {threads} -max_target_seqs {params.max_hits} && date) &> {log}"""
+
 
 ################
 # Preprocessing #
 #################
 rule preprocess:
     input:
-#        os.path.join(RESULTS_DIR, "prokka/{ass}.gff")
-        rules.prokka.output.GFF
+        rules.prodigal.output.GFF
     output:
-        os.path.join(RESULTS_DIR, "prokka/{ass}_CDS_names.txt")
+        os.path.join(RESULTS_DIR, "prodigal/{ass}_CDS_names.txt")
     log:
         "logs/preprocess.{ass}.log"
     message:
         "Preprocessing GFFs from {wildcards.ass}"
     shell:
-        """(date && sed -n '/##FASTA/q;p' {input} | awk '$3=="CDS"' | awk '{{print $9}}' | awk 'gsub(";.*","")' | awk 'gsub("ID=","")' > {output} && date) &> {log}"""
+        """(date && sed -n '/##FASTA/q;p' {input} | awk '$3=="CDS"' | awk '{print $1,$9}'| awk 'gsub(";.*","")' | awk 'gsub("ID=","")' | awk 'sub(/\.[^\.]+$/,".",$1)' | awk '{print $1$NF}' > {output} && date) &> {log}"""         
 
 ##################
 # Running gRodon #
 ##################
 rule gRodon:
     input:
-#        FFN=os.path.join(RESULTS_DIR, "prokka/{ass}.ffn"),
-        FFN=rules.prokka.output.FFN,
+        FFN=rules.prodigal.output.FFN,
         CDS=rules.preprocess.output,
+        BLAST=rules.blast.output,
         installed=os.path.join(RESULTS_DIR, "gRodon/gRodon.installed")
     output:
         PRED=os.path.join(RESULTS_DIR, "gRodon/{ass}_growth_prediction.txt")
