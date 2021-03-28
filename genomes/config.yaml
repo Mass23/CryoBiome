@@ -31,4 +31,4 @@ prodigal:
 blast:
   db: "/mnt/data/sbusi/euci/RPROTDB/RPDB"
   max_hits: 1
-  threads: 2
+  threads: 6

@@ -28,7 +28,7 @@ rule all:
         expand(os.path.join(RESULTS_DIR, "prodigal/{ass}.{type}"), ass=ASSEMBLY, type=["gff", "faa", "ffn"]),
         expand(os.path.join(RESULTS_DIR, "blast/{ass}.out"), ass=ASSEMBLY),
         expand(os.path.join(RESULTS_DIR, "gRodon/{ass}_growth_prediction.txt"), ass=ASSEMBLY),
-#        expand(os.path.join(RESULTS_DIR, "gRodon/merged_all_growth_prediction.txt"))
+        expand(os.path.join(RESULTS_DIR, "gRodon/merged_all_growth_prediction.txt"))
 
 ############################
 # Download Genbank genomes #
@@ -162,7 +162,7 @@ rule preprocess:
     message:
         "Preprocessing GFFs from {wildcards.ass}"
     shell:
-        """(date && sed -n '/##FASTA/q;p' {input} | awk '$3=="CDS"' | awk '{print $1,$9}'| awk 'gsub(";.*","")' | awk 'gsub("ID=","")' | awk 'sub(/\.[^\.]+$/,".",$1)' | awk '{print $1$NF}' > {output} && date) &> {log}"""         
+        """(date && sed -n '/##FASTA/q;p' {input} | awk '$3=="CDS"' | awk '{{print $1,$9}}'| awk 'gsub(";.*","")' | awk 'gsub("ID=","")' | awk 'sub(/\.[^\.]+$/,".",$1)' | awk '{{print $1$NF}}' > {output} && date) &> {log}"""    
 
 ##################
 # Running gRodon #

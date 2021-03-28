@@ -9,7 +9,8 @@ suppressMessages(library(data.table))
 
 all_paths <-
   list.files(path = dirname(snakemake@input[["PRED"]]),
-             pattern = "*.txt",
+             pattern = "*.txt", 
+             recursive=TRUE,
              full.names = TRUE)
 
 # Removing EMPTY files from the list             
