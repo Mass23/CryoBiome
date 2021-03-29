@@ -220,7 +220,8 @@ rule coRdon:
 
 rule merge_coRdon:
     input:
-        COUNT=os.path.join(RESULTS_DIR, "coRdon")
+        COUNT=os.path.join(RESULTS_DIR, "coRdon"),
+        DUMMY=expand(os.path.join(RESULTS_DIR, "coRdon/{ass}_codon_counts.txt"), ass=ASSEMBLY)
     output:
         DF=os.path.join(RESULTS_DIR, "coRdon/merged_all_codon_counts.txt")
     log:
