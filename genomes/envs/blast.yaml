@@ -1,0 +1,6 @@
+channels:
+  - bioconda
+  - conda-forge
+  - biocore
+dependencies:
+  - blast=2.11.0

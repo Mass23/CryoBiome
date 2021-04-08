@@ -1,0 +1,7 @@
+channels:
+  - bioconda
+  - conda-forge
+  - biocore
+dependencies:
+  - prodigal=2.6.3
+  - any2fasta=0.4.2
