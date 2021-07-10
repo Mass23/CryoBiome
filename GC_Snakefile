@@ -1,0 +1,65 @@
+"""
+Author: Susheel Bhanu BUSI
+Affiliation: ESB group LCSB UniLU
+Date: [2021-07-10]
+Run: snakemake -s GC_Snakefile --use-conda --cores 40 -rp
+Latest modification:
+"""
+
+import os
+import glob
+import pandas as pd
+
+configfile:"GC_config.yaml"
+DATA_DIR=config['data_dir']
+RESULTS_DIR=config['results_dir']
+ENV_DIR=config['env_dir']
+SRC_DIR=config['scripts_dir']
+SAMPLES=[line.strip() for line in open("GC_list", 'r')]    # if using a sample list instead of putting them in a config file
+
+###########
+rule all:
+    input:
+        expand(os.path.join(DATA_DIR, "gc_content/{sample}.txt"), sample=SAMPLES),
+        os.path.join(DATA_DIR, "gc_content/ALL_samples_GC.txt")
+
+
+##############
+# GC Content #
+##############
+rule GC_content:
+    input:
+        os.path.join(DATA_DIR, "{sample}.fna")
+    output:
+        os.path.join(DATA_DIR, "gc_content/{sample}.txt")
+    log:
+        "logs/gc_content.{sample}.log"
+    threads:
+        config['bbmap']['threads']
+    conda:
+        os.path.join(ENV_DIR, "bbmap.yaml")
+    message:
+        "Running Prokka on {wildcards.sample}"
+    shell:
+        "(date && stats.sh in={input} gc={output} gcformat=1 addname=t && date) &> {log}"
+
+rule collate_GC:
+    input:
+        gc=expand(os.path.join(DATA_DIR, "gc_content/{sample}.txt"), sample=SAMPLES)
+    output:
+        os.path.join(DATA_DIR, "gc_content/ALL_samples_GC.txt")
+    message:
+        "Collecting the average GC content for all CryoBiome Samples"
+    run:
+        # Running all samples in a loop
+        summary = []
+        
+        for sample in input.gc:
+            df=pd.read_csv(sample, sep="\t", header=0)
+            df['sample']=os.path.basename(sample)
+            df['sample']=df['sample'].str.replace('.txt', '')
+            summary.append(df['sample'])
+            summary.append(df['GC'].mean())
+        
+        df_final=pd.DataFrame(summary)
+        df_final.to_csv(output[0], sep='\t', header=True)

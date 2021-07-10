@@ -1,0 +1,28 @@
+# Path to data folder
+data_dir: "/mnt/esb-storage-01/NOMIS/euci_assembly"
+
+# Path to results folder
+results_dir: "/mnt/data/sbusi/euci/results"
+
+# Path to Conda environments:
+env_dir: "/mnt/data/sbusi/euci/envs"
+
+# Path to auxilliary scripts
+scripts_dir: "/mnt/data/sbusi/euci/scripts"
+
+################################
+# Prokka
+prokka:
+  threads: 12
+  path: "/mnt/data/sbusi/euci/.snakemake/conda/34fca334/lib/site_perl/5.26.2"
+  blast: "/mnt/data/sbusi/euci/.snakemake/conda/9654cb14/bin"
+
+################################
+# Prodigal
+prodigal:
+  threads: 1
+
+################################
+# BBmap
+bbmap:
+  threads: 4
