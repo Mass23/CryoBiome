@@ -9,6 +9,7 @@ Latest modification:
 import os
 import glob
 import pandas as pd
+from tqdm import tqdm
 
 configfile:"GC_config.yaml"
 DATA_DIR=config['data_dir']
@@ -54,12 +55,13 @@ rule collate_GC:
         # Running all samples in a loop
         summary = []
         
-        for sample in input.gc:
+        for sample in tqdm(input.gc):
             df=pd.read_csv(sample, sep="\t", header=0)
-            df['sample']=os.path.basename(sample)
-            df['sample']=df['sample'].str.replace('.txt', '')
-            summary.append(df['sample'])
-            summary.append(df['GC'].mean())
+            sid=os.path.basename(sample)
+            sid=sid.replace('.txt', '')
+            
+            summary.append({'sample': sid, 'GC_mean': df['GC'].mean()})
+
         
         df_final=pd.DataFrame(summary)
-        df_final.to_csv(output[0], sep='\t', header=True)
+        df_final.to_csv(output[0], sep='\t', index=False, header=True)
