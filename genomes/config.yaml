@@ -10,6 +10,9 @@ env_dir: "/mnt/data/sbusi/euci/envs"
 # Path to auxilliary scripts
 scripts_dir: "/mnt/data/sbusi/euci/scripts"
 
+# Path to databases
+database_dir: "/mnt/esb-storage-01/NOMIS/databases"
+
 # ESB-storage-01
 esb-storage-01:
   path: "/mnt/esb-storage-01/NOMIS/refseq/complete_prokaryotes"
@@ -24,11 +27,18 @@ prokka:
 ################################
 # Prodigal
 prodigal:
-  threads: 1
+  threads: 4
   path: "/mnt/data/sbusi/euci/.snakemake/conda/cdaed2ee/lib/5.26.2"
 
+################################
 # BLAST
 blast:
   db: "/mnt/data/sbusi/euci/RPROTDB/RPDB"
   max_hits: 1
   threads: 6
+
+################################
+# HMMER - for cold adapatation genes
+hmmer:
+  CAGhmm: "/mnt/esb-storage-01/NOMIS/databases/merged_cold_adaptataion_hmms.txt"
+  threads: 4
