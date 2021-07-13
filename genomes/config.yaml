@@ -40,5 +40,5 @@ blast:
 ################################
 # HMMER - for cold adapatation genes
 hmmer:
-  CAGhmm: "/mnt/esb-storage-01/NOMIS/databases/merged_cold_adaptataion_hmms.txt"
+  CAGhmm: "/mnt/esb-storage-01/NOMIS/databases/merged_cold_adaptation_genes.hmm"
   threads: 4
