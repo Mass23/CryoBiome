@@ -255,4 +255,4 @@ rule hmmer_CAGs:
     message:
         "Identifying Cold-adaptation genes (CAGs) for {wildcards.ass}"
     shell:
-        "(date && hmmscan -E 0.01 --cpu {threads} --domtblout {output.DM} {params.hmm} {input.FAA} > {output.OUT} && date) &> {log}"
+        "(date && (hmmsearch -E 0.01 --cpu {threads} --noali --notextw --tblout {output.OUT} --domtblout {output.DM} {params.hmm} {input.FAA}) > /dev/null && date) &> {log}"
