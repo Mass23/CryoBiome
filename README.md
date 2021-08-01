@@ -1,4 +1,4 @@
-# EUCI_microbiome
+# CryoBiome
 - All environments, scripts and jupyter notebooks required to replicate the Ecosystems Under Cryospheric Influence analyses are here within
 
 ## Overview
