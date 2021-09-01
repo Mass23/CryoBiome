@@ -102,10 +102,12 @@ rule fasta_extraction:
         os.path.join(RESULTS_DIR, "logs/{sample}.fasta.log")
     conda:
         os.path.join("envs/bbmap.yaml")
+    params:
+        memory=config["bbmap"]["mem"]
     message:
         "Extracting fasta sequence for {wildcards.sample}"
     shell:
-        "(date && filterbyname.sh in={input.fasta} out={output} include=t names={input.cluster} substring=f && date)"
+        "(date && filterbyname.sh -Xmx{params.memory} in={input.fasta} out={output} include=t names={input.cluster} substring=f && date)"
 
 rule contigs:
     input:

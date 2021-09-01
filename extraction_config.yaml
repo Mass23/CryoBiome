@@ -15,6 +15,10 @@ diamond:
   db: "/mnt/esb-storage-01/nr_trembl/nr_uniprot_trembl.dmnd"
   threads: 48
 
+## BBMAP ##
+bbmap:
+  mem: "1g"
+
 ## MAFFT ##
 mafft:
   threads: 4
