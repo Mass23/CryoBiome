@@ -8,17 +8,21 @@ Latest modification:
 
 import os, fnmatch
 import glob
+import numpy as np
 import pandas as pd
+from collections import Counter
 
 configfile:"extraction_config.yaml"
 DATA_DIR=config['data_dir']
 RESULTS_DIR=config['results_dir']
+KFASTA_DIR=config['kfasta_dir']
 SAMPLES=[line.strip() for line in open("cluster_list", 'r')]    # if using a sample list instead of putting them in a config file
 ACCESSION=[line.strip() for line in open("sample_list", 'r')]
 
 ###########
 rule all:
     input:
+        os.path.join(DATA_DIR, "clusters_min_30_seq_2_samp_SB.tsv"),
         expand(os.path.join(RESULTS_DIR, "fasta/Cluster_{sample}.fa"), sample=SAMPLES),
         expand(os.path.join(RESULTS_DIR, "contigs/Cluster_{sample}_contigs.txt"), sample=SAMPLES),
         os.path.join(RESULTS_DIR, "coverage/merged_euci_coverages.txt"),
@@ -34,9 +38,63 @@ rule all:
 ################################
 # rules for files and analyses #
 ################################
+rule cluster_gather:
+    input:
+        linclust=os.path.join(KFASTA_DIR, "results/mmseqs2/clusters_linclust.tsv"),
+        metadata=os.path.join(DATA_DIR, "MTG_metadata.tsv")
+    output:
+        os.path.join(DATA_DIR, "clusters_min_30_seq_2_samp_SB.tsv")
+    log:
+        os.path.join(RESULTS_DIR, "logs/linclust_gather.log")
+    message:
+        "Extracting cluster information from MMSEQS2 LINCLUST output"
+    run:
+        clusters_mmseqs = pd.read_csv(snakemake.input.linclust, sep='\t', header = None)
+        print(len(clusters_mmseqs))
+        print(len(set(clusters_mmseqs[0])))
+
+        # subset clusters that are present in at least 2 samples, and have 30 sequences
+        from collections import Counter
+        count_dict = Counter(clusters_mmseqs[0])
+        
+        #subset more than 29 sequences
+        count_dict = { k:v for k, v in count_dict.items() if v > 29}
+        clusters_mmseqs = clusters_mmseqs[clusters_mmseqs[0].isin(list(count_dict.keys()))]
+        print(len(clusters_mmseqs))
+        print(len(set(clusters_mmseqs[0])))
+
+        clusters_mmseqs.rename(columns = {0:'Centroid',1:'Sequence'}, inplace=True)
+        print(clusters_mmseqs.columns)
+
+        clusters_subset = pd.DataFrame(columns=['ClusterID','Centroid','Sequence'])
+        metadata = pd.read_csv(snakemake.input.metadata, sep='\t')
+        EUCI_samples = metadata[metadata['Cryosphere'] == 'Yes']['Sample'].to_list()
+
+        # Counting clusters with sequences
+        count_kept = 0
+        count_removed = 0
+        for cluster in list(set(clusters_mmseqs['Centroid'])):
+            samples = list(set([i.split('_')[1] for i in clusters_mmseqs.loc[clusters_mmseqs['Centroid'] == cluster,'Sequence']]))
+            if len(samples) > 1:
+                cluster_data = clusters_mmseqs[clusters_mmseqs['Centroid'] == cluster]
+                cluster_data['ClusterID'] = 'Cluster' + str(count_kept)
+                clusters_subset = clusters_subset.append(cluster_data, ignore_index=True)
+                count_kept += 1
+            else:
+                count_removed += 1
+            s = f"""
+            ------------------
+            Kept : {count_kept}
+            Removed : {count_removed}
+            ------------------"""
+            print(s)
+
+        print(clusters_subset)
+        clusters_subset.to_csv(snakemake.output[0],sep='\t')
+
 rule fasta_extraction:
     input:
-        fasta=os.path.join(DATA_DIR, "../results/concat/concatenated_KEGG.fasta"),
+        fasta=os.path.join(KFASTA_DIR, "results/concat/concatenated_KEGG.fasta"),
         cluster=os.path.join(DATA_DIR, "Cluster_{sample}.txt")
     output:
         os.path.join(RESULTS_DIR, "fasta/Cluster_{sample}.fa")
