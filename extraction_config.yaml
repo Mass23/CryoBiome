@@ -13,4 +13,8 @@ kfasta_dir: "/mnt/md1200/epfl_sber/massimo/ChapterI/EUCI_MG/selection_inference/
 # Path to DIAMOND database
 diamond:
   db: "/mnt/esb-storage-01/nr_trembl/nr_uniprot_trembl.dmnd"
-  threads: 20
+  threads: 48
+
+## MAFFT ##
+mafft:
+  threads: 4

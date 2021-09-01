@@ -199,12 +199,14 @@ rule mafft:
         os.path.join(RESULTS_DIR, "mafft/Cluster_{sample}.msf")
     conda:
         os.path.join("envs/mafft.yaml")
+    threads:
+        config["mafft"]["threads"]
     log:
         os.path.join(RESULTS_DIR, "logs/{sample}.mafft.log")
     message:
         "Running multiple sequence alignment on {wildcards.sample}"
     shell:
-        "(date && mafft {input} > {output} && date) &> {log}"
+        "(date && mafft --thread {threads} {input} > {output} && date) &> {log}"
 
 rule consensus:
     input:
