@@ -33,7 +33,8 @@ rule all:
 #        expand(os.path.join(RESULTS_DIR, "diamond/Cluster_{sample}.tsv"), sample=SAMPLES),
         os.path.join(RESULTS_DIR, "diamond/merged_Cluster.tsv"),
         expand(os.path.join(RESULTS_DIR, "Stats/Cluster_{sample}_len_GC_PID.txt"), sample=SAMPLES),
-        expand(os.path.join(RESULTS_DIR, "Pairwise_identity/Cluster_{sample}.txt"), sample=SAMPLES)
+        expand(os.path.join(RESULTS_DIR, "Pairwise_identity/Cluster_{sample}.txt"), sample=SAMPLES),
+        expand(os.path.join(RESULTS_DIR, "Stats/Unassigned_clusters_stats.{type}"), sample=SAMPLES, type=["txt", "tsv"])
 
 ################################
 # rules for files and analyses #
@@ -299,3 +300,60 @@ rule stats:
         
         # writing Stats to file
         stat.to_csv(output[0], sep='\t', index=True, header=True)
+
+rule cluster_stats:
+    input:
+        expand(os.path.join(RESULTS_DIR, "Stats/Cluster_{sample}_len_GC_PID.txt"), sample=SAMPLES)
+    output:
+        os.path.join(RESULTS_DIR, "Stats/Unassigned_clusters_stats.txt")
+    log:
+        os.path.join(RESULTS_DIR, "logs/Unassigned_stats.log")
+    message:
+        "Concatenating all stats results for downstream analyses"
+    shell:
+        "(date && tail -n+2 {input} > {output} && date) &> {log}" 
+
+rule Unassigned_clusters_stats:
+    input:
+        rules.cluster_stats.output
+    output:
+        os.path.join(RESULTS_DIR, "Stats/Unassigned_clusters_stats.tsv")
+    log:
+        os.path.join(RESULTS_DIR, "logs/Unassigned_TSV_stats.log")
+    message:
+        "Extracting information for downstream analyses of Unassigned clusters"
+    run:
+        def ParseClusterStats(file):
+            row_count = 0
+            df = pd.DataFrame(columns=['ClusterID','SeqNum', 'meanSeqLen', 'meanGC', 'meanPID', 'stdSeqLen', 'stdGC', 'stdPID'])
+            with open(file, 'r') as f:
+                for line in f.readlines():
+                    if line.startswith('=='):
+                        print(line)
+                        if row_count == 0:
+                            row_count += 1         
+                            cluster_id = line.lstrip('==> ').rstrip('_len_GC_PID.txt <==\n')
+                            continue
+                        else:
+                            print(row_count)
+                            df = df.append({'ClusterID': cluster_id,'SeqNum': SeqNum,   'meanSeqLen': meanSeqLen, 'meanGC': meanGC, 
+                                            'meanPID': meanPID, 'stdSeqLen': stdSeqLen,   'stdGC': stdGC, 
+                                                       'stdPID': stdPID}, ignore_index=True)
+                            row_count += 1
+                            cluster_id = line.lstrip('==> ').rstrip('_len_GC_PID.txt <==\n')
+                    if line.startswith('count'):
+                        SeqNum = line.split('\t')[1]
+                    if line.startswith('mean'):
+                        meanSeqLen = line.split('\t')[1]
+                        meanGC = line.split('\t')[2]
+                        meanPID = line.split('\t')[3].rstrip('\n')
+                    if line.startswith('std'):
+                        stdSeqLen = line.split('\t')[1]
+                        stdGC = line.split('\t')[2]
+                        stdPID = line.split('\t')[3].rstrip('\n')
+            return(df)
+
+        stats_df = ParseClusterStats(input[0])             
+        
+        head(stats_df)
+        stats_df.to_csv(output[0], sep='\t')
