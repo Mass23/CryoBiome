@@ -355,5 +355,5 @@ rule Unassigned_clusters_stats:
 
         stats_df = ParseClusterStats(input[0])             
         
-        head(stats_df)
+        stats_df.head()
         stats_df.to_csv(output[0], sep='\t')
