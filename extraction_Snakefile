@@ -333,8 +333,8 @@ rule Unassigned_clusters_stats:
                         print(line)
                         if row_count == 0:
                             row_count += 1         
-#                            cluster_id = line.lstrip('==> ').rstrip('_len_GC_PID.txt <==\n')
-                            cluster_id = os.path.basename(re.sub("_len_GC_PID.*$", "", line.lstrip("==> ")))
+                            cluster_id = os.path.basename(line.lstrip("==> ").rstrip('_len_GC_PID.txt <==\n'))
+#                            cluster_id = os.path.basename(re.sub('_len_GC_PID.*$', '', line.lstrip('==> ')))
                             continue
                         else:
                             print(row_count)
@@ -342,8 +342,8 @@ rule Unassigned_clusters_stats:
                                             'meanPID': meanPID, 'stdSeqLen': stdSeqLen,   'stdGC': stdGC, 
                                                        'stdPID': stdPID}, ignore_index=True)
                             row_count += 1
-#                            cluster_id = line.lstrip('==> ').rstrip('_len_GC_PID.txt <==\n')
-                            cluster_id = os.path.basename(re.sub("_len_GC_PID.*$", "", line.lstrip("==> ")))
+                            cluster_id = os.path.basename(line.lstrip("==> ").rstrip('_len_GC_PID.txt <==\n'))
+#                            cluster_id = os.path.basename(re.sub('_len_GC_PID.*$', '', line.lstrip('==> ')))
                     if line.startswith('count'):
                         SeqNum = line.split('\t')[1]
                     if line.startswith('mean'):
