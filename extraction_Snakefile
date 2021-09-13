@@ -201,7 +201,7 @@ rule cluster_tRNA:
                 # adding filename as column
                 tRNA['file']=os.path.basename(sample)
                 tRNA.sort_values(by=[8], ascending=False, inplace=True)
-                tRNA_edited=tRNA[['file', 8]]
+                tRNA_edited=tRNA[['file', 4]]
                 tRNA_final=tRNA_edited.head(1)
                 tRNA_final.set_index(['file'], inplace=True)
                 tRNA_final.to_csv(output[0], sep='\t', index=True, header=None, mode = "a")
