@@ -29,6 +29,7 @@ rule all:
         os.path.join(RESULTS_DIR, "coverage/merged_euci_coverages.txt"),
         expand(os.path.join(RESULTS_DIR, "coverage/Cluster_{sample}_coverages.txt"), sample=SAMPLES),
         expand(os.path.join(RESULTS_DIR, "tRNA/Cluster_{sample}_tRNA.txt"), sample=SAMPLES),
+        os.path.join(RESULTS_DIR, "tRNA/cluster_tRNA_collection.txt"),
         expand(os.path.join(RESULTS_DIR, "Stats/Cluster_{sample}.txt"), sample=SAMPLES),
         expand(os.path.join(RESULTS_DIR, "emboss/Cluster_{sample}_consensus.fa"), sample=SAMPLES),
 #        expand(os.path.join(RESULTS_DIR, "diamond/Cluster_{sample}.tsv"), sample=SAMPLES),
@@ -178,6 +179,32 @@ rule tRNA:
     shell:
         "(date && tRNAscan-SE -G -o {output.tab} -f {output.str} {input} && date) &> {log}"
 
+rule cluster_tRNA:
+    input:
+        expand(os.path.join(RESULTS_DIR, "tRNA/Cluster_{sample}_tRNA.txt"), sample=SAMPLES)
+    output:
+        os.path.join(RESULTS_DIR, "tRNA/cluster_tRNA_collection.txt")
+    log:
+        os.path.join(RESULTS_DIR, "logs/tRNA_collection.log")
+    message:
+        "Gathering all tRNA information in one file"
+    run:
+        import pandas.io.common
+        
+        for sample in input:
+            try:
+                print(sample)
+                tRNA=pd.read_csv(sample, sep="\t", skiprows=3, header=None)
+               
+                # adding filename as column
+                tRNA['file']=os.path.basename(sample)
+                tRNA.sort_values(by=[8], ascending=False, inplace=True)
+                tRNA_edited=tRNA[['file', 8]]
+                tRNA_final=tRNA_edited.head(1)
+                tRNA_final.set_index(['file'], inplace=True)
+                tRNA_final.to_csv(output[0], sep='\t', index=True, header=None)
+            except pandas.errors.EmptyDataError:
+                continue
 
 ####################
 # Cluster analyses #
@@ -360,3 +387,5 @@ rule Unassigned_clusters_stats:
         
         stats_df.head()
         stats_df.to_csv(output[0], sep='\t')
+
+
