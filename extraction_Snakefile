@@ -358,15 +358,20 @@ rule Unassigned_clusters_stats:
             row_count = 0
             df = pd.DataFrame(columns=['ClusterID','SeqNum', 'meanSeqLen', 'meanGC', 'meanPID', 'stdSeqLen', 'stdGC', 'stdPID'])
             with open(file, 'a+') as f:
-                # add at the end == to make it go to the last line
-                f.write('\n==')
-                for line in f.readlines():
+                # append smthg at the end to make it write till the last line
+                lines = [l.rstrip("\n") for l in f]
+                lines.append('ENDFILE')
+                for line in lines:
                     if line.startswith('=='):
                         print(line)
                         if row_count == 0:
                             row_count += 1         
                             cluster_id = os.path.basename(line.lstrip("==> ").rstrip('_len_GC_PID.txt <==\n'))
                             continue
+                        elif line == 'ENDFILE':
+                            df = df.append({'ClusterID': cluster_id,'SeqNum': SeqNum,   'meanSeqLen': meanSeqLen, 'meanGC': meanGC, 
+                                            'meanPID': meanPID, 'stdSeqLen': stdSeqLen,   'stdGC': stdGC, 
+                                                       'stdPID': stdPID}, ignore_index=True)
                         else:
                             print(row_count)
                             df = df.append({'ClusterID': cluster_id,'SeqNum': SeqNum,   'meanSeqLen': meanSeqLen, 'meanGC': meanGC, 
