@@ -357,7 +357,7 @@ rule Unassigned_clusters_stats:
         def ParseClusterStats(file):
             row_count = 0
             df = pd.DataFrame(columns=['ClusterID','SeqNum', 'meanSeqLen', 'meanGC', 'meanPID', 'stdSeqLen', 'stdGC', 'stdPID'])
-            with open(file, 'r') as f:
+            with open(file, 'a+') as f:
                 # add at the end == to make it go to the last line
                 f.write('\n==')
                 for line in f.readlines():
