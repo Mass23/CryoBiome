@@ -357,18 +357,19 @@ rule Unassigned_clusters_stats:
         def ParseClusterStats(file):
             row_count = 0
             df = pd.DataFrame(columns=['ClusterID','SeqNum', 'meanSeqLen', 'meanGC', 'meanPID', 'stdSeqLen', 'stdGC', 'stdPID'])
-            with open(file, 'a+') as f:
+            with open(file, 'r') as f:
                 # append smthg at the end to make it write till the last line
                 lines = [l.rstrip("\n") for l in f]
-                lines.append('ENDFILE')
+                lines.append('==ENDFILE')
+                print(lines)
                 for line in lines:
                     if line.startswith('=='):
-                        print(line)
                         if row_count == 0:
                             row_count += 1         
                             cluster_id = os.path.basename(line.lstrip("==> ").rstrip('_len_GC_PID.txt <==\n'))
                             continue
-                        elif line == 'ENDFILE':
+                        elif line == '==ENDFILE':
+                            print('hello')
                             df = df.append({'ClusterID': cluster_id,'SeqNum': SeqNum,   'meanSeqLen': meanSeqLen, 'meanGC': meanGC, 
                                             'meanPID': meanPID, 'stdSeqLen': stdSeqLen,   'stdGC': stdGC, 
                                                        'stdPID': stdPID}, ignore_index=True)
@@ -389,7 +390,7 @@ rule Unassigned_clusters_stats:
                         stdSeqLen = line.split('\t')[1]
                         stdGC = line.split('\t')[2]
                         stdPID = line.split('\t')[3].rstrip('\n')
-            return(df)
+                return(df)
 
         stats_df = ParseClusterStats(input[0])             
         
