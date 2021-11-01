@@ -15,11 +15,14 @@
   - 0_preprocessing/PP1_classifer.sh
   - 0_preprocessing/PP2_classifer.sh
   - 0_preprocessing.R
-  - 1_Dataset_exploration.R
-  - 2_SVM_EUCI.ipynb
-  - 3_Specific_analysis.R
-  - 4_Taxonomic_analysis.R
-  - 5_Phylogenetics.R
+  - 0_Dataset_exploration.R
+  - 1_1_Logistice_classifiers.ipynb
+  - 1_2_ASV_stats.R
+  - 1_3_ASV_coefficients.R
+  - 1_4_Phylogenetics.R
+  - 2_1_Diff_abund.R
+  - 2_2_refseq_cryobiome.R
+  - 2_3_Core_microbiome.R
 ```
 
 #### Metagenomic (metaG) analyses
@@ -29,11 +32,9 @@
   - 0_preprocessing/metag_config.yaml: config file for preprocessing samples using IMP
   - 0_preprocessing/slurm.yaml: SLURM configuration file for running the analyses on a HPC-environment
   - 0_preprocessing/snakemake_parsable_launcher.sh: SBATCH launcher for running initial IMP preprocessing
-  - 6_MTG_taxonomy.R
-  - 7_MTG_functional.R
-  - 8_Functional_taxonomy.R
-  - 9_Genes_clustering.ipynb
-  - 9_Unassigned_genes.ipynb
+  - 3_1_Enrichment.R
+  - 3_2_Taxonomy.R
+  - 3.3_Unknown_space.R
   - cluster_list: list of all clusters of KEGG+Unassigned genes based on "mmseqs2" analyses
   - config.yaml: config file for running the initial gene fasta extraction and "mmseqs2" clustering
   - coverage_Snakefile: to estimate coverage for each contig/gene in the assemblies
