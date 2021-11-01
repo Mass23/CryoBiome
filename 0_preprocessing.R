@@ -28,7 +28,7 @@ FilterSeqNumber <- function(merged_table, seq_number){
   print('Initial filtering: removing samples with n or less sequences...')
   sample_names = colnames(merged_table)[!(colnames(merged_table) %in% c('ASV','Taxonomy'))]
   samples_sums = colSums(merged_table[,..sample_names])
-  columns_to_keep = c('ASV', 'Taxonomy', sample_names[samples_sums > 1999])
+  columns_to_keep = c('ASV', 'Taxonomy', sample_names[samples_sums > seq_number])
   merged_table = merged_table[,..columns_to_keep]
   
   # remove ASVs that now have 0 counts due to filtering or are singletons
@@ -40,8 +40,14 @@ FilterSeqNumber <- function(merged_table, seq_number){
   print('Filtering again the samples with n or less sequences after singletons removal...')
   updated_sample_names = colnames(merged_table)[!(colnames(merged_table) %in% c('ASV','Taxonomy'))]
   updated_samples_sums = colSums(merged_table[,..updated_sample_names])
-  updated_columns_to_keep = c('ASV', 'Taxonomy', updated_sample_names[updated_samples_sums > 1999])
+  updated_columns_to_keep = c('ASV', 'Taxonomy', updated_sample_names[updated_samples_sums > seq_number])
   filtered_table = merged_table[,..updated_columns_to_keep]
+  
+  # remove again ASVs that now have 0 counts due to filtering
+  print('Removing ASVs with 0 counts...')
+  filtered_table[, `:=`(ASV_sum = rowSums(.SD)), .SDcols=updated_sample_names[updated_samples_sums > seq_number]]
+  filtered_table = filtered_table[ASV_sum > 0,]
+  filtered_table = filtered_table[,ASV_sum:=NULL]
 
   return(filtered_table)}
 
@@ -85,19 +91,43 @@ UpdateCoord <- function(gps_list){
   }
   return(as.vector(new_gps_list))}
 
-setwd('/Users/admin/Documents/Academia/PhD/Chapter I/')
+SamplesBadTax <- function(data, metadata){
+            samples_to_remove = c()
+            samples = unique(metadata$Sample)[unique(metadata$Sample) %in% colnames(data)]
+            for (sample in samples){
+              cols_to_keep = c('ASV', 'Taxonomy', sample)
+              sample_data = as.data.frame(data[, ..cols_to_keep])
+              tax_vec = as.vector(sample_data$Taxonomy[sample_data[sample] > 0])
+              if (length(tax_vec) > 0){
+              prop_phylum = length(tax_vec[tax_vec %like% 'p__'])/length(tax_vec)
+              prop_genus = length(tax_vec[tax_vec %like% 'g__'])/length(tax_vec)
+              if ((prop_phylum < 0.9) & (prop_genus < 0.7)){
+                print('-----------------------------')
+                print(paste0('Sample: ', sample))
+                print(paste0('  - ', length(tax_vec), ' ASVs'))
+                print(paste0('  - Proportion of phylum taxonomy:', prop_phylum))
+                print(paste0('  - Proportion of genus taxonomy:', prop_genus))
+                samples_to_remove = c(samples_to_remove, sample)}}
+              else{samples_to_remove = c(samples_to_remove, sample)}}
+            return(samples_to_remove)}
+
+setwd('/Users/mabourqu/Documents/PhD/C1/')
 
 ###############################################################################################
 # PP1
-PP1_raw_tab = fread('Data/Raw/PP1/PP1_raw_table.tsv')
-PP1_raw_tax = fread('Data/Raw/PP1/PP1_raw_taxonomy.tsv')
+PP1_raw_tab = fread('Data/Raw/PP1_raw_table.tsv')
+PP1_raw_tax = fread('Data/Raw/PP1_raw_taxonomy.tsv')
 PP1_raw_metadata = as_tibble(fread('Metadata/PP1_metadata_raw.csv', header = TRUE))
 # Add taxonomy to the table, keep only taxonomy up to genus, filter based on taxonomy
 PP1_merged_table = MergeTabTax(PP1_raw_tab, PP1_raw_tax)
 PP1_merged_table$Taxonomy = as.vector(CleanTaxString(PP1_merged_table$Taxonomy))
 PP1_merged_table = FilterTabTax(PP1_merged_table)
-# Filter samples with less thank 2k sequences, remove singletons, filter again
-PP1_merged_table = FilterSeqNumber(PP1_merged_table, 1999)
+# Remove samples with bad quality taxonomy
+PP1_samples_to_remove = SamplesBadTax(PP1_merged_table, PP1_raw_metadata)
+intersect(PP1_raw_metadata$Sample[PP1_raw_metadata$Cryosphere == 'Yes'], PP1_samples_to_remove)
+PP1_merged_table = PP1_merged_table[,!PP1_samples_to_remove, with = FALSE]
+# Filter samples with less thank 5k sequences, remove singletons, filter again
+PP1_merged_table = FilterSeqNumber(PP1_merged_table, 4999)
 # Write Table
 write.table(PP1_merged_table, file='Data/PP1_table.tsv', sep = "\t", row.names = FALSE)
 # Update metadata
@@ -108,59 +138,32 @@ write.table(PP1_metadata, file='Metadata/PP1_metadata.tsv', sep = "\t", row.name
 
 ###############################################################################################
 # PP2
-PP2_raw_tab = fread('Data/Raw/PP2/PP2_raw_table.tsv')
-PP2_raw_tax = fread('Data/Raw/PP2/PP2_raw_taxonomy.tsv')
+PP2_raw_tab = fread('Data/Raw/PP2_raw_table.tsv')
+PP2_raw_tax = fread('Data/Raw/PP2_raw_taxonomy.tsv')
 PP2_raw_metadata = as_tibble(fread('Metadata/PP2_metadata_raw.csv', header = TRUE))
 # Add taxonomy to the table, keep only taxonomy up to genus, filter based on taxonomy
 PP2_merged_table = MergeTabTax(PP2_raw_tab, PP2_raw_tax)
 PP2_merged_table$Taxonomy = as.vector(CleanTaxString(PP2_merged_table$Taxonomy))
 PP2_merged_table = FilterTabTax(PP2_merged_table)
-# Filter samples with less thank 2k sequences
-PP2_merged_table = FilterSeqNumber(PP2_merged_table, 1999)
-
-# We remove the Snow Study of PP2: the ASVs are only assigned to the domain level and blast showed ~ 86% matches on 16s database
-PP2_to_remove = PP2_raw_metadata$Sample[PP2_raw_metadata$Ecosystem == 'Snow']
-PP2_to_remove = PP2_to_remove[PP2_to_remove %in% colnames(PP2_merged_table)]
-PP2_merged_table = PP2_merged_table[,!PP2_to_remove, with = FALSE]
-PP2_raw_metadata = PP2_raw_metadata[PP2_raw_metadata$Ecosystem != 'Snow',]
-
+# Remove samples with bad quality taxonomy
+PP2_samples_to_remove = SamplesBadTax(PP2_merged_table, PP2_raw_metadata)
+intersect(PP2_raw_metadata$Sample[PP2_raw_metadata$Cryosphere == 'Yes'], PP2_samples_to_remove)
+PP2_merged_table = PP2_merged_table[,!PP2_samples_to_remove, with = FALSE]
+# Filter samples with less thank 5k sequences
+PP2_merged_table = FilterSeqNumber(PP2_merged_table, 4999)
 # Write Table
-cols_to_keep = c('ASV', 'Taxonomy', PP2_metadata$Sample)
-PP2_merged_table = PP2_merged_table[,..cols_to_keep]
 write.table(PP2_merged_table, file='Data/PP2_table.tsv', sep = "\t", row.names = FALSE)
 # Update metadata
-PP2_metadata = UpdateMetadata(PP2_raw_metadata,PP2_merged_table)
+PP2_metadata = UpdateMetadata(PP2_raw_metadata, PP2_merged_table)
 write.table(PP2_metadata, file='Metadata/PP2_metadata.tsv', sep = "\t", row.names = FALSE)
 
 # Sequences
 library(seqinr)
-PP1_raw_fasta = read.fasta(file = "Data/Raw/PP1/PP1_raw_seqs.fasta", seqtype = "DNA",as.string = TRUE, set.attributes = FALSE)
-PP2_raw_fasta = read.fasta(file = "Data/Raw/PP2/PP2_raw_seqs.fasta", seqtype = "DNA",as.string = TRUE, set.attributes = FALSE)
+PP1_raw_fasta = read.fasta(file = "Data/Raw/PP1_raw_seqs.fasta", seqtype = "DNA", as.string = TRUE, set.attributes = FALSE)
+PP2_raw_fasta = read.fasta(file = "Data/Raw/PP2_raw_seqs.fasta", seqtype = "DNA", as.string = TRUE, set.attributes = FALSE)
 
 PP1_fasta = PP1_raw_fasta[names(PP1_raw_fasta) %in% PP1_merged_table$ASV]
 PP2_fasta = PP2_raw_fasta[names(PP2_raw_fasta) %in% PP2_merged_table$ASV]
 
-write.fasta(sequences = PP1_fasta, names = names(PP1_fasta), file.out = 'Data/Filtered/PP1_ASV_seqs.fasta')
-write.fasta(sequences = PP2_fasta, names = names(PP2_fasta), file.out = 'Data/Filtered/PP2_ASV_seqs.fasta')
-
-##############################################################################################
-#MTG
-MTG_raw_tab = fread('Data/Raw/MTG/MTG_raw_table.tsv')
-MTG_KEGG_tab = fread('Data/Raw/Functional/MTG_KEGG_table.tsv')
-MTG_raw_metadata = as_tibble(fread('Metadata/MTG_metadata_raw.csv'))
-
-cols_tax = c(MTG_raw_metadata$Sample[MTG_raw_metadata$Sample %in% colnames(MTG_raw_tab)], 'mOTU', 'consensus_taxonomy')
-MTG_raw_tab = MTG_raw_tab[,..cols_tax]
-
-cols_fun = c(MTG_raw_metadata$Sample[MTG_raw_metadata$Sample %in% colnames(MTG_KEGG_tab)], 'KEGG')
-MTG_KEGG_tab = MTG_KEGG_tab[,..cols_fun]
-# Add taxonomy to the table, keep only taxonomy up to genus, filter based on taxonomy
-colnames(MTG_raw_tab)[colnames(MTG_raw_tab) == 'consensus_taxonomy'] = 'Taxonomy'
-MTG_raw_tab$Taxonomy = CleanTaxString(MTG_raw_tab$Taxonomy)
-MTG_raw_tab = FilterTabTax(MTG_raw_tab)
-MTG_tab = as.data.frame(MTG_raw_tab[MTG_raw_tab$mOTU != -1])
-# Write Table
-write.table(MTG_tab, file='Data/MTG_table.tsv', sep = "\t", row.names = FALSE)
-# Update metadata
-MTG_metadata = UpdateMetadataMTG(MTG_raw_metadata,MTG_tab, MTG_KEGG_tab)
-write.table(MTG_metadata, file='Metadata/MTG_metadata.tsv', sep = "\t", row.names = FALSE)
+write.fasta(sequences = PP1_fasta, names = names(PP1_fasta), file.out = 'Data/trees/PP1_ASV_seqs.fasta')
+write.fasta(sequences = PP2_fasta, names = names(PP2_fasta), file.out = 'Data/trees/PP2_ASV_seqs.fasta')
