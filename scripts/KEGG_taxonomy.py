@@ -3,7 +3,7 @@ from Bio import Entrez
 Entrez.email = "massimo.bourquin@epfl.ch"  # Always tell NCBI who you are
 Entrez.api_key = "1b37cec2fdc64d05c5cc5337b17b09b4c609"
 
-significant_kegg = pd.read_csv('7_MTG_Functional/KEGG_sign_sample.tsv', sep='\t', header = None)
+significant_kegg = pd.read_csv('../Data/KEGG_sign_sample.tsv', sep='\t', header = None)
 significant_kegg.rename(columns = {0:'Sample'}, inplace = True)
 significant_kegg.rename(columns = {1:'KEGG'}, inplace = True)
 
@@ -30,9 +30,9 @@ significant_kegg['Contigs'] = ''
 samples_list = list(set(significant_kegg['Sample'].values))
 kegg_list = list(set(significant_kegg['KEGG'].values))
 for sample in samples_list:
-    sample_file = pd.read_csv('Data/Raw/Functional/' + sample + '_KEGG_counts.tsv', sep='\t')
+    sample_file = pd.read_csv('Data/Raw_func/' + sample + '_KEGG_counts.tsv', sep='\t')
 
-    tax_file = pd.read_csv('Data/Raw/euci_kraken2/' + sample + '.labels.txt', sep='\t', header = None)
+    tax_file = pd.read_csv('Data/Raw_func/' + sample + '.labels.txt', sep='\t', header = None)
 
     sample_file_sign_sub = sample_file[sample_file['Geneid'].isin(kegg_list)]
     kegg_sub_list = list(set(list(sample_file_sign_sub['Geneid'].values)))
@@ -50,4 +50,4 @@ for sample in samples_list:
 
 
 
-significant_kegg.to_csv('7_MTG_Functional/KEGG_sign_tax.tsv', sep='\t')
+significant_kegg.to_csv('../Data/KEGG_sign_tax.tsv', sep='\t')

@@ -8,10 +8,10 @@ library(htmltools)
 webshot::install_phantomjs(force = T)
 
 # Data loading
-setwd('/Users/mabourqu/Documents/PhD/C1/')
-stats_file = read.csv('Data/Unassigned_clusters_stats.tsv', sep='\t')
-clusters_file = read.csv('Data/clusters_min_30_seq_2_samp.tsv', sep='\t')
-diamond_uniprot = read.csv('Data/diamond_clusters.tsv',sep='\t',header = FALSE)
+setwd('/Users/mabourqu/Desktop/cryobiome_revisions')
+stats_file = read.csv('Data/Functional_clusters/Unassigned_clusters_stats.tsv', sep='\t')
+clusters_file = read.csv('Data/Functional_clusters/clusters_min_30_seq_2_samp.tsv', sep='\t')
+diamond_uniprot = read.csv('Data/Functional_clusters/diamond_clusters.tsv',sep='\t',header = FALSE)
 metadata = read.csv('Metadata/MTG_metadata.tsv')
 
 Cryosphere_samples = as.character(metadata$Sample[metadata$Cryosphere == 'Yes'])
@@ -20,7 +20,7 @@ Cryosphere_samples = as.character(metadata$Sample[metadata$Cryosphere == 'Yes'])
 # Append other data to the stats file
 diamond_uniprot$V1 = gsub("_", "", diamond_uniprot$V1)
 
-clusters_trna = read.csv('Data/cluster_tRNA_collection.txt',sep='\t', header = F)
+clusters_trna = read.csv('Data/Functional_clusters/cluster_tRNA_collection.txt',sep='\t', header = F)
 clusters_trna$V1 = gsub('_tRNA.txt','',clusters_trna$V1)
 clusters_trna$V1 = gsub('_','',clusters_trna$V1)
 

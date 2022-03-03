@@ -16,7 +16,7 @@ library(DESeq2)
 # MTG tax: #5CAD0A
 # MTG func: #23A671
 
-setwd('/Users/mabourqu/Documents/PhD/C1/')
+setwd('/Users/mabourqu/Desktop/cryobiome_revisions/')
 ############################################################################################################
 # 1. Loading data
 
@@ -72,7 +72,7 @@ write.table(kegg_decoder_df, file='Data/KEGG_decoder_df_in.tsv', sep='\t',  col.
 
 # in the Data folder using the CryoBiome-kegg-decoder env: KEGG-decoder -i KEGG_decoder_df_in.tsv -o KEGG_decoder_output
 
-KEGG_decoder = read.table('Data/KEGG_decoder_output', sep='\t', header=TRUE)
+KEGG_decoder = read.table('Data/KEGG_decoder_out.tsv', sep='\t', header=TRUE)
 colsums = colSums(KEGG_decoder[,!colnames(KEGG_decoder) %in% c('Function')])
 KEGG_decoder = KEGG_decoder[,c('Function', names(colsums[colsums > 0]))]
 names(KEGG_decoder)[names(KEGG_decoder)=="Function"] <- "Sample"

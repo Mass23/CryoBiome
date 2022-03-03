@@ -15,8 +15,8 @@ library(dplyr)
 # PP2: #BA0600
 # MTG: #5CAD0A
 
-setwd('/Users/mabourqu/Documents/PhD/C1/')
-source('2_Genus_analysis/2_1_Diff_abund/ancom_v2.1.R')
+setwd('/Users/mabourqu/Desktop/cryobiome_revisions')
+source('Scripts/ancom_v2.1.R')
 ############################################################################################################
 # Differential abundance analysis
 PP1_genus_tab = read.csv('Data/PP1_genus.csv')
@@ -44,10 +44,10 @@ merged_table[is.na(merged_table)] = 0
 merged_metadata = rbind(PP1_metadata, PP2_metadata)
 length(unique(merged_metadata$Study))
 length(unique(merged_metadata$Study[merged_metadata$Cryosphere == 'Yes']))
-# 94 studies, 22 from cryospheric ecosystems
+# 104 studies, 31 from cryospheric ecosystems
 length(unique(merged_metadata$Sample))
 length(unique(merged_metadata$Sample[merged_metadata$Cryosphere == 'Yes']))
-# 3998 samples, 510 cryospheric
+# 4247 samples, 695 cryospheric (185 more cryo samples than ver. 1)
 
 # COUNT NORMALISATION
 merged_metadata$Cryosphere = as.character(merged_metadata$Cryosphere)
@@ -55,7 +55,7 @@ merged_metadata$Sample = as.character(merged_metadata$Sample)
 merged_metadata$Dataset = as.character(merged_metadata$Dataset)
 merged_metadata$Study = as.character(merged_metadata$Study)
 
-# zero_cut = 0.995 means that only genera present in at least 20 samples are taken into account
+# zero_cut = 0.99 means that only genera present in at least 21 samples are taken into account
 feature_table = merged_table; sample_var = "Sample"; group_var = 'Cryosphere'
 out_cut = 0.05; zero_cut = 0.995; lib_cut = 1000; neg_lb = FALSE
 prepro = feature_table_pre_process(feature_table, merged_metadata, sample_var, group_var, out_cut, zero_cut, lib_cut, neg_lb)
@@ -76,7 +76,7 @@ n_taxa = ifelse(is.null(struc_zero), nrow(feature_table), sum(apply(struc_zero, 
 cut_off = c(0.9 * (n_taxa -1), 0.8 * (n_taxa -1), 0.7 * (n_taxa -1), 0.6 * (n_taxa -1))
 names(cut_off) = c("detected_0.9", "detected_0.8", "detected_0.7", "detected_0.6")
 
-# Annotation data
+# Annotation data W=1277
 colnames(res$fig$data)[colnames(res$fig$data) == 'x'] = 'CLR_mean_diff'
 colnames(res$fig$data)[colnames(res$fig$data) == 'y'] = 'W'
 dat_ann = data.frame(x = min(res$fig$data$CLR_mean_diff), y = cut_off["detected_0.7"], label = "W[0.7]")
@@ -105,16 +105,21 @@ over_data$Class = vapply(as.character(over_data$taxa_id), function(x) strsplit(x
 over_data$Phylum = vapply(as.character(over_data$taxa_id), function(x) strsplit(x, split='; ')[[1]][2], FUN.VALUE = character(1))
 over_data$Phylum = gsub('p__','',over_data$Phylum)
 
-most_over = over_data[(over_data$CLR_mean_diff > 0.3) & (over_data$W>1251),]
+table(over_data$Phylum[over_data$DA == 'Overrepresented'])
+
+# phylum: c('Acidobacteriota','Actinobacteriota','Bacteroidota','Chloroflexi','Cyanobacteria','Firmicutes','Others,'Patescibacteria','Planctomycetota','Proteobacteria','Verrucomicrobiota')
+# colors: c('#B09C85FF','#F39B7FFF','#DC0000FF','#91D1C2FF','#00A087FF','#7E6148FF','grey','dimgrey','#4DBBD5FF','#3C5488FF','#8491B4FF')
+most_over = over_data[(over_data$CLR_mean_diff > 0.35) & (over_data$W >= 1269),]
 ggplot(most_over) + 
   geom_bar(aes(x=CLR_mean_diff,y=reorder(as.factor(Genus), CLR_mean_diff),fill=Phylum), stat='identity') + ylab('') + xlab('CLR mean difference') +
-   theme_linedraw() + theme(panel.grid = element_line(colour = 'darkgrey'), axis.text.y = element_text(face = "italic")) + scale_fill_manual(values=c('#F39B7FFF','#E64B35FF','#DC0000FF','dimgrey','#3C5488FF','#8491B4FF'))
+  theme_linedraw() + theme(panel.grid = element_line(colour = 'darkgrey'), axis.text.y = element_text(face = "italic")) + 
+  scale_fill_manual(values=c('#F39B7FFF','#DC0000FF','#00A087FF','grey','dimgrey','#3C5488FF','#8491B4FF'))
 ggsave('2_Genus_analysis/2_1_Diff_abund/2_1_Ancom_most_over.pdf', width=6.5, height = 6)
 
 
 # Create Taxonomic tree at the family level with the edge size as the number of overrepresented genera
 library(metacoder)
-tree_data = parse_tax_data(data.frame(Taxonomy= over_data$taxa_id[(over_data$CLR_mean_diff > 0) & (over_data$W > 1251)]),
+tree_data = parse_tax_data(data.frame(Taxonomy= over_data$taxa_id[(over_data$CLR_mean_diff > 0) & (over_data$W >= 1269)]),
                            class_cols = "Taxonomy", # the column that contains taxonomic information
                            class_sep = "; ", # The character used to separate taxa in the classification
                            class_regex = "^(.*)__(.*)$", # Regex identifying where the data for each taxon is

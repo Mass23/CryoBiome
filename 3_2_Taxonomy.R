@@ -3,7 +3,6 @@ library(rentrez)
 library(foreach)
 library(dplyr) 
 library(ggplot2)
-library(ggrepel)
 library(taxa)
 library(parallel)
 library(ggpubr)
@@ -23,7 +22,7 @@ library(ggrepel)
 # MTG tax: #5CAD0A
 # MTG func: #23A671
 
-setwd('/Users/mabourqu/Documents/PhD/C1/')
+setwd('/Users/mabourqu/Desktop/cryobiome_revisions/')
 ############################################################################################################
 # Gather Genus info, first run the KEGG_
 KEGG_taxonomy_table = read.csv('Data/KEGG_sign_tax.tsv', sep = '\t')
@@ -51,7 +50,7 @@ all_genera <- foreach(i=1:nrow(KEGG_taxonomy_table), .export = c('GetGenus'), .c
 }}
 
 all_genera = all_genera %>% group_by(Genus) %>% summarise(sum_match = sum(n_match), n_samp = n_distinct(Sample), n_KO = n_distinct(KEGG))
-write.csv(all_genera, file='Data/functional/KEGG_sign_tax_genera.csv',sep=',')
+write.csv(all_genera, file='Data/KEGG_sign_tax_genera.csv',sep=',')
 
 ############################################################################################################
 KEGG_taxonomy = read.table('Data/KEGG_sign_tax_genera.csv')
@@ -70,7 +69,7 @@ KEGG_taxonomy$DA = vapply(KEGG_taxonomy$Genus, function(x){ifelse(sum(grep(x, ov
 ggplot(KEGG_taxonomy, aes(x=n_KO, y=n_samp/35, size=sum_match, colour=DA)) +  theme_linedraw() + geom_point() +
   geom_label_repel(show.legend = F,aes(label = ifelse(sum_match>2000,as.character(Genus),'')), box.padding = 0.6)  + theme(panel.grid = element_line(colour = 'darkgrey')) +
   scale_colour_manual(values=c('#00A087FF','darkgrey')) + labs(y='Prevalence in cryospheric samples', x='Cryosphere enriched KOs', size='Contigs n.')
-ggsave('3_Functional_analysis/3_2_Taxonomy/KEGG_taxonomy.pdf', width = 8.5, height = 6)
+ggsave('3_Functional_analysis/3_2_Taxonomy/KEGG_taxonomy.pdf', width = 6, height = 5)
 
 ggplot(KEGG_taxonomy) + geom_density(aes(x=sum_match, fill = DA), alpha=0.5)  + scale_x_log10() + theme_linedraw() + guides(fill=FALSE) + 
   scale_fill_manual(values=c('#00A087FF','darkgrey')) + xlab('Contigs n.') + ylab('Density') +
@@ -78,7 +77,7 @@ ggplot(KEGG_taxonomy) + geom_density(aes(x=sum_match, fill = DA), alpha=0.5)  + 
 ggsave('3_Functional_analysis/3_2_Taxonomy/KEGG_tax_n_matches.pdf', width = 3, height = 3)
 wilcox.test(KEGG_taxonomy$sum_match[KEGG_taxonomy$DA =='Cryo.'],KEGG_taxonomy$sum_match[KEGG_taxonomy$DA == 'Others'])
 # data:  KEGG_taxonomy$sum_match[KEGG_taxonomy$DA == "Cryo."] and KEGG_taxonomy$sum_match[KEGG_taxonomy$DA == "Others"]
-# W = 418760, p-value < 2.2e-16
+# W = 413103, p-value < 2.2e-16
 # alternative hypothesis: true location shift is not equal to 0
 
 

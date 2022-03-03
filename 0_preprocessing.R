@@ -24,7 +24,7 @@ FilterTabTax <- function(merged_table){
   return(merged_table)}
 
 FilterSeqNumber <- function(merged_table, seq_number){
-  # remove columns with less than 2000 sequences after taxonomy filtering
+  # remove columns with less than seq_number sequences after taxonomy filtering
   print('Initial filtering: removing samples with n or less sequences...')
   sample_names = colnames(merged_table)[!(colnames(merged_table) %in% c('ASV','Taxonomy'))]
   samples_sums = colSums(merged_table[,..sample_names])
@@ -101,7 +101,7 @@ SamplesBadTax <- function(data, metadata){
               if (length(tax_vec) > 0){
               prop_phylum = length(tax_vec[tax_vec %like% 'p__'])/length(tax_vec)
               prop_genus = length(tax_vec[tax_vec %like% 'g__'])/length(tax_vec)
-              if ((prop_phylum < 0.9) & (prop_genus < 0.7)){
+              if ((prop_phylum < 0.75) & (prop_genus < 0.5)){
                 print('-----------------------------')
                 print(paste0('Sample: ', sample))
                 print(paste0('  - ', length(tax_vec), ' ASVs'))
@@ -111,12 +111,12 @@ SamplesBadTax <- function(data, metadata){
               else{samples_to_remove = c(samples_to_remove, sample)}}
             return(samples_to_remove)}
 
-setwd('/Users/mabourqu/Documents/PhD/C1/')
+setwd('/Users/mabourqu/Desktop/cryobiome_revisions/')
 
 ###############################################################################################
 # PP1
-PP1_raw_tab = fread('Data/Raw/PP1_raw_table.tsv')
-PP1_raw_tax = fread('Data/Raw/PP1_raw_taxonomy.tsv')
+PP1_raw_tab = fread('Data/raw/PP1_all_merged_raw_table.tsv')
+PP1_raw_tax = fread('Data/raw/PP1_all_merged_raw_tax.tsv')
 PP1_raw_metadata = as_tibble(fread('Metadata/PP1_metadata_raw.csv', header = TRUE))
 # Add taxonomy to the table, keep only taxonomy up to genus, filter based on taxonomy
 PP1_merged_table = MergeTabTax(PP1_raw_tab, PP1_raw_tax)
@@ -138,8 +138,8 @@ write.table(PP1_metadata, file='Metadata/PP1_metadata.tsv', sep = "\t", row.name
 
 ###############################################################################################
 # PP2
-PP2_raw_tab = fread('Data/Raw/PP2_raw_table.tsv')
-PP2_raw_tax = fread('Data/Raw/PP2_raw_taxonomy.tsv')
+PP2_raw_tab = fread('Data/raw/PP2_all_merged_raw_table.tsv')
+PP2_raw_tax = fread('Data/raw/PP2_all_merged_raw_tax.tsv')
 PP2_raw_metadata = as_tibble(fread('Metadata/PP2_metadata_raw.csv', header = TRUE))
 # Add taxonomy to the table, keep only taxonomy up to genus, filter based on taxonomy
 PP2_merged_table = MergeTabTax(PP2_raw_tab, PP2_raw_tax)
@@ -155,12 +155,14 @@ PP2_merged_table = FilterSeqNumber(PP2_merged_table, 4999)
 write.table(PP2_merged_table, file='Data/PP2_table.tsv', sep = "\t", row.names = FALSE)
 # Update metadata
 PP2_metadata = UpdateMetadata(PP2_raw_metadata, PP2_merged_table)
+PP2_metadata$Latitude = UpdateCoord(PP2_metadata$Latitude)
+PP2_metadata$Longitude = UpdateCoord(PP2_metadata$Longitude)
 write.table(PP2_metadata, file='Metadata/PP2_metadata.tsv', sep = "\t", row.names = FALSE)
 
 # Sequences
 library(seqinr)
-PP1_raw_fasta = read.fasta(file = "Data/Raw/PP1_raw_seqs.fasta", seqtype = "DNA", as.string = TRUE, set.attributes = FALSE)
-PP2_raw_fasta = read.fasta(file = "Data/Raw/PP2_raw_seqs.fasta", seqtype = "DNA", as.string = TRUE, set.attributes = FALSE)
+PP1_raw_fasta = read.fasta(file = "Data/raw/PP1_all_merged_raw_seqs.fasta", seqtype = "DNA", as.string = TRUE, set.attributes = FALSE)
+PP2_raw_fasta = read.fasta(file = "Data/raw/PP2_all_merged_raw_seqs.fasta", seqtype = "DNA", as.string = TRUE, set.attributes = FALSE)
 
 PP1_fasta = PP1_raw_fasta[names(PP1_raw_fasta) %in% PP1_merged_table$ASV]
 PP2_fasta = PP2_raw_fasta[names(PP2_raw_fasta) %in% PP2_merged_table$ASV]

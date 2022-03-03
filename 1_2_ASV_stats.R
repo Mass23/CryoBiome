@@ -3,7 +3,7 @@ library(ggplot2)
 library(tibble)
 library(tidyr)
 
-setwd('/Users/mabourqu/Documents/PhD/C1/')
+setwd('/Users/mabourqu/Desktop/cryobiome_revisions')
 ###########################################################################################################################
 # 1. Data loading, we load only the cryo samples data
 # PP1
@@ -38,28 +38,28 @@ write.csv(PP1_ASV_tab[,c('ASV','group')], file='1_ASV_analysis/1_2_ASV_stats/1_2
 write.csv(PP2_ASV_tab[,c('ASV','group')], file='1_ASV_analysis/1_2_ASV_stats/1_2_PP2_ASV_groups.csv',row.names=F)
 
 # PP1
-nrow(PP1_ASV_tab)                        # 22510
-sum(PP1_ASV_tab$group == 'Others')       # 19873
-sum(PP1_ASV_tab$group == 'Shared')       # 302
-sum(PP1_ASV_tab$group == 'Cryosphere')   # 2335 
+nrow(PP1_ASV_tab)                        # 19353
+sum(PP1_ASV_tab$group == 'Others')       # 15647
+sum(PP1_ASV_tab$group == 'Shared')       # 346
+sum(PP1_ASV_tab$group == 'Cryosphere')   # 3360 
 
 # PP2
-nrow(PP2_ASV_tab)                        # 17280
-sum(PP2_ASV_tab$group == 'Others')       # 13577 
-sum(PP2_ASV_tab$group == 'Shared')       # 172 
-sum(PP2_ASV_tab$group == 'Cryosphere')   # 3531 
+nrow(PP2_ASV_tab)                        # 18296
+sum(PP2_ASV_tab$group == 'Others')       # 13605 
+sum(PP2_ASV_tab$group == 'Shared')       # 224 
+sum(PP2_ASV_tab$group == 'Cryosphere')   # 4467 
 
 
 ASV_number_df = data.frame('Dataset' = c('PP1','PP1','PP1','PP2','PP2','PP2'), 
                            'Group' = c('Others', 'Cryosphere','Shared', 'Others', 'Cryosphere', 'Shared'),
-                           'Count' = c(19873,302,2335,13577,172,3531))
+                           'Count' = c(15647,3360,346,13605,4467,224))
 
 ggplot(ASV_number_df[ASV_number_df$Group != 'Others',]) + geom_bar(aes(x=Group,y=Count,fill=Dataset),stat='identity') + 
-  scale_fill_manual(values = c("#3C5488FF", "#DC0000FF")) + theme_linedraw() + facet_grid(~Dataset) + xlab('') + ylab('ASV number') + guides(fill=FALSE)
+  scale_fill_manual(values = c("#3C5488FF", "#DC0000FF")) + theme_linedraw() + facet_grid(~Dataset) + xlab('') + ylab('Abund. (rel. ab. > 0.5%) ASV number') + guides(fill=FALSE)
 ggsave('1_ASV_analysis/1_2_ASV_stats/1_2_ASV_numbers_cryo.pdf',width=5,height=5)
 
 ggplot(ASV_number_df) + geom_bar(aes(x=Group,y=Count,fill=Dataset),stat='identity') + 
-  scale_fill_manual(values = c("#3C5488FF", "#DC0000FF")) + theme_linedraw() + facet_grid(~Dataset) + xlab('') + ylab('ASV number') + guides(fill=FALSE)
+  scale_fill_manual(values = c("#3C5488FF", "#DC0000FF")) + theme_linedraw() + facet_grid(~Dataset) + xlab('') + ylab('Abund. (rel. ab. > 0.5%) ASV number') + guides(fill=FALSE)
 ggsave('1_ASV_analysis/1_2_ASV_stats/1_2_ASV_numbers_all.pdf',width=5,height=5)
 
 ###########################################################################################################################
@@ -91,18 +91,18 @@ PP2_rel_tab$group[(PP2_rel_tab$cryo_preval > 0) & (PP2_rel_tab$Others_preval > 0
 PP1_rel_tab$group[(PP1_rel_tab$cryo_preval > 0) & (PP1_rel_tab$Others_preval == 0)] = 'Cryosphere'
 PP2_rel_tab$group[(PP2_rel_tab$cryo_preval > 0) & (PP2_rel_tab$Others_preval == 0)] = 'Cryosphere'
 
-PP1_specific_abundance = colSums(PP1_rel_tab[PP1_rel_tab$group=='Cryosphere',PP1_cryo_samples]) # mean: 0.5992813
-PP1_shared_abundance = colSums(PP1_rel_tab[PP1_rel_tab$group=='Shared',PP1_cryo_samples]) # mean: 0.4007187
-nrow(PP1_rel_tab[PP1_rel_tab$group=='Cryosphere',PP1_cryo_samples])   # 77586
-nrow(PP1_rel_tab[PP1_rel_tab$group=='Shared',PP1_cryo_samples]) # 9364
+PP1_specific_abundance = colSums(PP1_rel_tab[PP1_rel_tab$group=='Cryosphere',PP1_cryo_samples]) # mean: 0.6240109
+PP1_shared_abundance = colSums(PP1_rel_tab[PP1_rel_tab$group=='Shared',PP1_cryo_samples]) # mean: 0.3759891
+nrow(PP1_rel_tab[PP1_rel_tab$group=='Cryosphere',PP1_cryo_samples])   # 99336
+nrow(PP1_rel_tab[PP1_rel_tab$group=='Shared',PP1_cryo_samples]) # 12876
 
-PP2_specific_abundance = colSums(PP2_rel_tab[PP2_rel_tab$group=='Cryosphere',PP2_cryo_samples]) # mean: 0.7983269
-PP2_shared_abundance = colSums(PP2_rel_tab[PP2_rel_tab$group=='Shared',PP2_cryo_samples]) # mean: 0.2016731
-nrow(PP2_rel_tab[PP2_rel_tab$group=='Cryosphere',PP2_cryo_samples])   # 64332
-nrow(PP2_rel_tab[PP2_rel_tab$group=='Shared',PP2_cryo_samples]) # 4438
+PP2_specific_abundance = colSums(PP2_rel_tab[PP2_rel_tab$group=='Cryosphere',PP2_cryo_samples]) # mean: 0.7795496
+PP2_shared_abundance = colSums(PP2_rel_tab[PP2_rel_tab$group=='Shared',PP2_cryo_samples]) # mean: 0.2204504
+nrow(PP2_rel_tab[PP2_rel_tab$group=='Cryosphere',PP2_cryo_samples])   # 76699
+nrow(PP2_rel_tab[PP2_rel_tab$group=='Shared',PP2_cryo_samples]) # 4867
 
-ASV_contribution_df = data.frame('Dataset' = c(rep('PP1',220),rep('PP1',220),rep('PP2',290),rep('PP2',290)), 
-                                 'Group' = c(rep('Cryosphere',220),rep('Shared',220),rep('Cryosphere',290),rep('Shared',290)), 
+ASV_contribution_df = data.frame('Dataset' = c(rep('PP1',301),rep('PP1',301),rep('PP2',394),rep('PP2',394)), 
+                                 'Group' = c(rep('Cryosphere',301),rep('Shared',301),rep('Cryosphere',394),rep('Shared',394)), 
                                  'Abundance' = c(PP1_specific_abundance,PP1_shared_abundance,PP2_specific_abundance,PP2_shared_abundance))
 
 ggplot(ASV_contribution_df) + geom_boxplot(aes(x=Group,y=Abundance,fill=Dataset)) + 
