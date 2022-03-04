@@ -18,7 +18,7 @@ library(ComplexUpset)
 # PP2: #BA0600
 # MTG: #5CAD0A
 
-setwd('/Users/mabourqu/Desktop/cryobiome_revisions/')
+setwd('SET_THE_WORKING_DIRECTORY_HERE')
 ############################################################################################################
 # Data laoding
 PP1_metadata = read.csv('Metadata/PP1_metadata.tsv', sep = '\t')
