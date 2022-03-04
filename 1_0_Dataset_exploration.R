@@ -1,7 +1,6 @@
 library(data.table)
 library(ggplot2)
-setwd('/Users/mabourqu/Desktop/cryobiome_revisions')
-
+setwd('SET_THE_WORKING_DIRECTORY_HERE')
 #####################################################################
 # Create most abundant ASVs dataset
 library(seqinr)
