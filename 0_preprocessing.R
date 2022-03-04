@@ -111,7 +111,7 @@ SamplesBadTax <- function(data, metadata){
               else{samples_to_remove = c(samples_to_remove, sample)}}
             return(samples_to_remove)}
 
-setwd('/Users/mabourqu/Desktop/cryobiome_revisions/')
+setwd('SET_THE_WORKING_DIRECTORY_HERE')
 
 ###############################################################################################
 # PP1
