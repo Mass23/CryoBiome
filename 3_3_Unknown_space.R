@@ -8,7 +8,7 @@ library(htmltools)
 webshot::install_phantomjs(force = T)
 
 # Data loading
-setwd('/Users/mabourqu/Desktop/cryobiome_revisions')
+setwd('SET_THE_WORKING_DIRECTORY_HERE')
 stats_file = read.csv('Data/Functional_clusters/Unassigned_clusters_stats.tsv', sep='\t')
 clusters_file = read.csv('Data/Functional_clusters/clusters_min_30_seq_2_samp.tsv', sep='\t')
 diamond_uniprot = read.csv('Data/Functional_clusters/diamond_clusters.tsv',sep='\t',header = FALSE)
