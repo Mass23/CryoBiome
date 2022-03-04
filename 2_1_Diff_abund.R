@@ -15,7 +15,7 @@ library(dplyr)
 # PP2: #BA0600
 # MTG: #5CAD0A
 
-setwd('/Users/mabourqu/Desktop/cryobiome_revisions')
+setwd('SET_THE_WORKING_DIRECTORY_HERE')
 source('Scripts/ancom_v2.1.R')
 ############################################################################################################
 # Differential abundance analysis
