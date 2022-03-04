@@ -12,7 +12,7 @@ library(ggplot2)
 # PP2: #BA0600
 # MTG tax: #5CAD0A
 # MTG func: #23A671
-setwd('/Users/mabourqu/Desktop/cryobiome_revisions/')
+setwd('SET_THE_WORKING_DIRECTORY_HERE')
 
 ###################################################################
 ancom_table = read.csv('Data/Amplicon_ancom_res.csv')
