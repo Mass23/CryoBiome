@@ -11,7 +11,7 @@ library(ggnewscale)
 library(phytools)
 library(reshape2)
 
-setwd('/Users/mabourqu/Desktop/cryobiome_revisions/')
+setwd('SET_THE_WORKING_DIRECTORY_HERE')
 
 ####################################################################################################
 # 1. Phylogenetics
