@@ -22,7 +22,7 @@ library(ggrepel)
 # MTG tax: #5CAD0A
 # MTG func: #23A671
 
-setwd('/Users/mabourqu/Desktop/cryobiome_revisions/')
+setwd('SET_THE_WORKING_DIRECTORY_HERE')
 ############################################################################################################
 # Gather Genus info, first run the KEGG_
 KEGG_taxonomy_table = read.csv('Data/KEGG_sign_tax.tsv', sep = '\t')
