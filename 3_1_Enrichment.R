@@ -16,7 +16,7 @@ library(DESeq2)
 # MTG tax: #5CAD0A
 # MTG func: #23A671
 
-setwd('/Users/mabourqu/Desktop/cryobiome_revisions/')
+setwd('SET_THE_WORKING_DIRECTORY_HERE')
 ############################################################################################################
 # 1. Loading data
 
