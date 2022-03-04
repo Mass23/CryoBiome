@@ -9,7 +9,7 @@ library(rstatix)
 library(coin)
 library(tidyverse)
 library(dplyr)
-setwd('/Users/mabourqu/Desktop/cryobiome_revisions/')
+setwd('SET_THE_WORKING_DIRECTORY_HERE')
 
 library(devtools)
 #install_github("Russel88/MicEco")
