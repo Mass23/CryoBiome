@@ -3,7 +3,7 @@ library(ggplot2)
 library(tibble)
 library(tidyr)
 
-setwd('/Users/mabourqu/Desktop/cryobiome_revisions')
+setwd('SET_THE_WORKING_DIRECTORY_HERE')
 ###########################################################################################################################
 # 1. Data loading, we load only the cryo samples data
 # PP1
